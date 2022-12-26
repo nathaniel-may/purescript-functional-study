@@ -11,10 +11,10 @@ jobs:
     - name: install node
       uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: 18
 
     - name: install purescript
-      run: npm install -g purs
+      run: npm install -g purs@0.15.7
 
     - name: install spago
       run: npm install -g spago
