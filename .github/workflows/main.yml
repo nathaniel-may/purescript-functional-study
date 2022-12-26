@@ -14,10 +14,7 @@ jobs:
         node-version: 18
 
     - name: install purescript
-      run: npm install -g purs@0.15.7
-
-    - name: install spago
-      run: npm install -g spago
+      uses: purescript-contrib/setup-purescript@main
 
     - name: run tests
       run: spago test
