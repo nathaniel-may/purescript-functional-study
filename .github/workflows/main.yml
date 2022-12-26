@@ -1,5 +1,5 @@
 name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+run-name: CI
 on: [push, pull_request]
 jobs:
   Test:
@@ -9,5 +9,5 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 16
-    - run: npm install spago
+    - run: npm install -g spago
     - run: spago test
