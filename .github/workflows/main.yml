@@ -8,10 +8,10 @@ jobs:
     - name: checkout
       uses: actions/checkout@v3
 
-    - name: install node
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
+    # - name: install node
+    #   uses: actions/setup-node@v3
+    #   with:
+    #     node-version: 18
 
     - name: install purescript
       uses: purescript-contrib/setup-purescript@main
