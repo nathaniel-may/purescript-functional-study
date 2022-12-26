@@ -2,10 +2,10 @@ module Test.Main where
 
 import Prelude
 
+import Data.Traversable (traverse)
 import Effect (Effect)
-import Effect.Class.Console (log)
+import Test.TestM (runTestM)
+import Test.Unit as Unit
 
 main :: Effect Unit
-main = do
-  log "🍝"
-  log "You should add some tests."
+main = void $ traverse runTestM Unit.allTests
