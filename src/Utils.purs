@@ -2,12 +2,13 @@ module ZipperM.Utils where
 
 import Prelude
 
-import Data.Array as Array
+import Data.List.Lazy (List, nil)
+import Data.List.Lazy as List
 import Data.Maybe (fromMaybe)
 
 
-tail' :: forall a. Array a -> Array a
-tail' = fromMaybe [] <<< Array.tail
+tail' :: forall a. List a -> List a
+tail' = fromMaybe nil <<< List.tail
 
-init' :: forall a. Array a -> Array a
-init' = fromMaybe [] <<< Array.init
+init' :: forall a. List a -> List a
+init' = fromMaybe nil <<< List.init
