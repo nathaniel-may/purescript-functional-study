@@ -1,7 +1,6 @@
-{ name = "my-project"
+{ name = "purescript-zipperm"
 , dependencies =
-  [ "arrays", "console", "effect", "maybe", "prelude", "test-unit" ]
+  [ "arrays", "console", "effect", "maybe", "prelude" ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }
--- TODO move test-unit to a new test.dhall

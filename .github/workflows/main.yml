@@ -12,10 +12,10 @@ jobs:
       uses: purescript-contrib/setup-purescript@main
 
     - name: build
-      run: spago build --purs-args "--stash"
+      run: spago build --purs-args "--stash" --path src
 
     - name: fail on warnings
-      run: spago build --purs-args "--stash --strict"
+      run: spago build --purs-args "--stash --strict" --path src
 
     - name: run tests
-      run: spago test
+      run: spago -x test.dhall test --purs-args "--stash"
