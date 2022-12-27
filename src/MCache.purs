@@ -4,10 +4,15 @@ import Prelude
 
 import Control.Comonad (class Comonad, class Extend, extract)
 import Data.Maybe (Maybe(..))
+import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck.Gen (Gen)
 
 
 -- | A datatype for memoizing and evicting data. Useful as a unit of a buffer.
 data MCache m a = MCache (m a) (Maybe a)
+
+instance eqMCache :: (Eq a, Eq (m a)) => Eq (MCache m a) where
+    eq (MCache mx my) (MCache mx' my') = mx == mx' && my == my'
 
 instance functorMCache :: Functor m => Functor (MCache m) where
     map f (MCache mx my) = MCache (map f mx) (map f my)
@@ -32,6 +37,9 @@ instance comonadMCacheW :: Comonad w => Comonad (MCache w) where
 
 -- TODO is this possible to describe?
 -- instance bindMCacheM :: Bind m => Bind (m (MCache m a)) where
+
+instance arbitraryMCache :: Arbitrary (m a) => Arbitrary (MCache m a) where
+    arbitrary = (\x -> MCache x Nothing) <$> arbitrary
 
 run :: forall m a. Applicative m => MCache m a -> m a
 run (MCache _ (Just x)) = pure x
