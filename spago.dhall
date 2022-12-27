@@ -4,6 +4,7 @@
   , "console"
   , "control"
   , "effect"
+  , "identity"
   , "lists"
   , "maybe"
   , "prelude"
