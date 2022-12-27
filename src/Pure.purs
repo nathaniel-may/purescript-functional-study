@@ -5,7 +5,7 @@ import Prelude
 import Data.Generic.Rep (class Generic)
 import Data.Show.Generic (genericShow)
 
-
+-- TODO replace with library for Identity Monad
 newtype Pure a = Pure a
 
 run :: forall a. Pure a -> a
