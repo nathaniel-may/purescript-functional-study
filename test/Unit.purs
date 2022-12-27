@@ -1,7 +1,7 @@
 -- | module for all unit tests
 module ZipperM.Test.Unit
     -- exporting only the testSuite to get dead code warnings if anything else isn't used
-    (unitSuite) 
+    (tests) 
     where
 
 import Prelude
@@ -14,8 +14,8 @@ import Test.Unit.Assert as Assert
 import ZipperM.Test.Utils (PN(..), walk, walk')
 
 
-unitSuite :: TestSuite
-unitSuite = suite "unit tests" do
+tests :: TestSuite
+tests = suite "unit tests" do
 
     test "next and prev foward and back" do
         let input = (fromFoldable $ pure <$> [1, 2] :: List (Pure Int))
