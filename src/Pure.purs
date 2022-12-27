@@ -8,6 +8,9 @@ import Data.Show.Generic (genericShow)
 
 newtype Pure a = Pure a
 
+run :: forall a. Pure a -> a
+run (Pure x) = x
+
 derive instance pureGeneric :: Generic (Pure a) _
 derive instance pureFunctor :: Functor Pure
 

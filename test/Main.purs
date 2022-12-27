@@ -2,10 +2,9 @@ module Test.Main where
 
 import Prelude
 
-import Data.Traversable (traverse)
 import Effect (Effect)
-import Test.TestM (runTestM)
-import Test.Unit as Unit
+import Test.Unit.Main (runTest)
+import ZipperM.Test.Unit (unitSuite)
 
 main :: Effect Unit
-main = void $ traverse runTestM Unit.allTests
+main = runTest unitSuite

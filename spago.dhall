@@ -1,14 +1,7 @@
 { name = "my-project"
 , dependencies =
-  [ "arrays"
-  , "assert"
-  , "console"
-  , "effect"
-  , "foldable-traversable"
-  , "maybe"
-  , "prelude"
-  , "transformers"
-  ]
+  [ "arrays", "console", "effect", "maybe", "prelude", "test-unit" ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }
+-- TODO move test-unit to a new test.dhall

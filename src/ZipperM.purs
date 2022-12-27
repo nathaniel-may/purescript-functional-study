@@ -17,7 +17,7 @@ import Data.Array as Array
 import Data.Maybe (Maybe, fromMaybe)
 import ZipperM.Utils (init', tail')
 
-
+-- TODO swap out arrays for lists
 data ZipperM m a = ZipperM (Array (m a)) a (Array (m a))
 
 mkZipperM :: forall m a. a -> Array (m a) -> ZipperM m a
