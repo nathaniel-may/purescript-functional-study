@@ -18,6 +18,7 @@ import Data.Maybe (Maybe, fromMaybe)
 import ZipperM.Utils (init', tail')
 
 
+-- TODO swap Lazy Lists for buffers that can drop from the back. Maybe use Data.Sequence?
 data ZipperM m a = ZipperM (List (m a)) a (List (m a))
 
 mkZipperM :: forall m a. a -> List (m a) -> ZipperM m a
@@ -25,6 +26,8 @@ mkZipperM = ZipperM nil
 
 mkZipperM' :: forall m a. Applicative m => List (m a) -> Maybe (m (ZipperM m a))
 mkZipperM' xs = map (\z -> ZipperM nil z xs) <$> List.head xs
+
+-- TODO add nextT and prevT that return `MaybeT m a`
 
 next :: forall m a. Applicative m => ZipperM m a -> Maybe (m (ZipperM m a))
 next (ZipperM left z right) =
