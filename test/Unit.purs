@@ -13,9 +13,7 @@ import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert as Assert
 import ZipperM.Test.Utils (PN(..), walk, walk')
 
--- import Test.Assert (assert, assert', assertEqual, assertEqual')
 
--- | array of all tests to run
 unitSuite :: TestSuite
 unitSuite = suite "unit tests" do
 
