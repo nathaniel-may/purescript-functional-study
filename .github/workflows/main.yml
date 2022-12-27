@@ -11,9 +11,11 @@ jobs:
     - name: install purescript
       uses: purescript-contrib/setup-purescript@main
 
-    # TODO error on warnings
     - name: build
-      run: spago build
+      run: spago build --purs-args "--stash"
+
+    - name: fail on warnings
+      run: spago build --purs-args "--stash --strict"
 
     - name: run tests
       run: spago test
