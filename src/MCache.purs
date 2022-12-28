@@ -2,7 +2,7 @@ module Data.MCache where
 
 import Prelude
 
-import Control.Comonad (class Comonad, class Extend, extract)
+import Control.Comonad (class Extend)
 import Data.Maybe (Maybe(..))
 import Test.QuickCheck (class Arbitrary, arbitrary)
 

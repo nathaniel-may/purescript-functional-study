@@ -1,6 +1,7 @@
 module Data.Zipper where
 
-import Control.Pure (Pure)
+import Data.Identity (Identity)
 import Data.ZipperM (ZipperM)
 
-type Zipper a = ZipperM Pure a
+
+type Zipper a = ZipperM Identity a
