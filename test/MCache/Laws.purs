@@ -1,4 +1,4 @@
-module Test.Laws.MCache where
+module Test.MCache.Laws (tests) where
 
 import Prelude
 
@@ -12,8 +12,8 @@ import ZipperM.Utils (runIdentity)
 
 
 -- | tests are written on the newtype wrapper MCacheM so that some values are forced
-laws :: TestSuite
-laws = suite "mcache laws" do
+tests :: TestSuite
+tests = suite "mcache laws" do
 
     test "functor identity" $
         quickCheck (\(MCacheM mcache :: MCacheM Identity Boolean) ->

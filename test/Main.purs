@@ -3,11 +3,11 @@ module Test.Main where
 import Prelude
 
 import Effect (Effect)
-import Test.Laws.MCache as MCache
+import Test.MCache.Laws as MCacheLaws
 import Test.Unit.Main (runTest)
-import ZipperM.Test.Unit as Unit
+import Test.ZipperM.Unit as ZipperMUnit
 
 main :: Effect Unit
 main = do
-    runTest Unit.tests
-    runTest MCache.laws
+    runTest ZipperMUnit.tests
+    runTest MCacheLaws.tests

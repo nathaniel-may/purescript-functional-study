@@ -1,5 +1,5 @@
 -- | module for all unit tests
-module ZipperM.Test.Unit
+module Test.ZipperM.Unit
     -- exporting only the testSuite to get dead code warnings if anything else isn't used
     (tests) 
     where
