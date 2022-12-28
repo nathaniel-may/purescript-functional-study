@@ -2,8 +2,9 @@ module Test.Laws.MCache where
 
 import Prelude
 
+import Control.Comonad (extend)
 import Data.Identity (Identity)
-import Data.MCache (MCache)
+import Data.MCache (MCache(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
 import ZipperM.Test.Utils (MCacheM(..))
@@ -60,4 +61,12 @@ laws = suite "mcache laws" do
         quickCheck (\(x :: Int) ->
             let f = pure (_ - 1) :: MCache Identity (Int -> Int)
             in (f <*> (pure x)) == ((pure (_ $ x)) <*> f)
+        )
+
+    test "extend associativity" $
+        quickCheck (\(MCacheM mcache :: MCacheM Identity Int) ->
+            let cache = runIdentity mcache
+                f = \(MCache _ my) -> my
+                g = \(MCache _ my) -> my
+            in (extend f <<< extend g) cache == (extend (f <<< extend g)) cache
         )

@@ -5,7 +5,6 @@ import Prelude
 import Control.Comonad (class Comonad, class Extend, extract)
 import Data.Maybe (Maybe(..))
 import Test.QuickCheck (class Arbitrary, arbitrary)
-import Test.QuickCheck.Gen (Gen)
 
 
 -- | A datatype for memoizing and evicting data. Useful as a unit of a buffer.
@@ -30,10 +29,7 @@ instance extendMCacheW :: Functor w => Extend (MCache w) where
     extend f cache@(MCache wx _) = let y = f cache
         in MCache (const y <$> wx) (Just y)
 
-instance comonadMCacheW :: Comonad w => Comonad (MCache w) where
-    extract :: forall a. MCache w a -> a
-    extract (MCache wx Nothing) = extract wx
-    extract (MCache _ (Just x)) = x
+-- Note: MCache is not a comonad because it breaks the left identity law
 
 -- TODO is this possible to describe?
 -- instance bindMCacheM :: Bind m => Bind (m (MCache m a)) where
