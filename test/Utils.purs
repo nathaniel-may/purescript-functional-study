@@ -5,7 +5,7 @@ import Prelude
 import Data.Array (cons, uncons)
 import Data.MCache (MCache(..), force)
 import Data.Maybe (Maybe(..))
-import Data.ZipperM (ZipperM, focus, next, next', nextT, prev, prev', prevT)
+import Data.ZipperM (ZipperM, focus, next, next', prev, prev')
 import Test.QuickCheck (class Arbitrary, arbitrary)
 
 
