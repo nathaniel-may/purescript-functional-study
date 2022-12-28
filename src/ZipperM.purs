@@ -5,16 +5,20 @@ module Data.ZipperM (
     , mkZipperM'
     , next
     , next'
+    , nextT
     , prev
     , prev'
+    , prevT
     , toArray
 ) where
 
 import Prelude
 
+import Control.Monad.Maybe.Trans (MaybeT(..))
 import Data.List.Lazy (List, nil, (:))
 import Data.List.Lazy as List
 import Data.Maybe (Maybe, fromMaybe)
+import Data.Traversable (sequence)
 import ZipperM.Utils (init', tail')
 
 
@@ -24,24 +28,28 @@ data ZipperM m a = ZipperM (List (m a)) a (List (m a))
 mkZipperM :: forall m a. a -> List (m a) -> ZipperM m a
 mkZipperM = ZipperM nil
 
-mkZipperM' :: forall m a. Applicative m => List (m a) -> Maybe (m (ZipperM m a))
-mkZipperM' xs = map (\z -> ZipperM nil z xs) <$> List.head xs
+mkZipperM' :: forall m a. Applicative m => List (m a) -> m (Maybe (ZipperM m a))
+mkZipperM' xs = map (\z -> ZipperM nil z xs) <$> (sequence $ List.head xs)
 
--- TODO add nextT and prevT that return `MaybeT m a`
-
-next :: forall m a. Applicative m => ZipperM m a -> Maybe (m (ZipperM m a))
+next :: forall m a. Applicative m => ZipperM m a -> m (Maybe (ZipperM m a))
 next (ZipperM left z right) =
-    map (\z' -> ZipperM (left `List.snoc` pure z) z' (tail' right)) <$> List.head right
+    map (\z' -> ZipperM (left `List.snoc` pure z) z' (tail' right)) <$> (sequence $ List.head right)
+
+prev :: forall m a. Applicative m => ZipperM m a -> m (Maybe (ZipperM m a))
+prev (ZipperM left z right) =
+    map (\z' -> ZipperM (init' left) z' (pure z `List.cons` right)) <$> (sequence $ List.last left)
 
 next' :: forall m a. Applicative m => ZipperM m a -> m (ZipperM m a)
-next' zipper = fromMaybe (pure zipper) (next zipper)
-
-prev :: forall m a. Applicative m => ZipperM m a -> Maybe (m (ZipperM m a))
-prev (ZipperM left z right) =
-    map (\z' -> ZipperM (init' left) z' (pure z `List.cons` right)) <$> List.last left
+next' zipper = fromMaybe zipper <$> next zipper
 
 prev' :: forall m a. Applicative m => ZipperM m a -> m (ZipperM m a)
-prev' zipper = fromMaybe (pure zipper) (prev zipper)
+prev' zipper = fromMaybe zipper <$> prev zipper
+
+nextT :: forall m a. Applicative m => ZipperM m a -> MaybeT m (ZipperM m a)
+nextT = MaybeT <<< next
+
+prevT :: forall m a. Applicative m => ZipperM m a -> MaybeT m (ZipperM m a)
+prevT = MaybeT <<< next
 
 focus :: forall m a. ZipperM m a -> a
 focus (ZipperM _ z _) = z

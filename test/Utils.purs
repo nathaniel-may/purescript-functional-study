@@ -5,7 +5,7 @@ import Prelude
 import Data.Array (cons, uncons)
 import Data.MCache (MCache(..), force)
 import Data.Maybe (Maybe(..))
-import Data.ZipperM (ZipperM, focus, next, next', prev, prev')
+import Data.ZipperM (ZipperM, focus, next, next', nextT, prev, prev', prevT)
 import Test.QuickCheck (class Arbitrary, arbitrary)
 
 
@@ -27,15 +27,13 @@ instance arbitraryMCacheM :: (Applicative m, Arbitrary (m a)) => Arbitrary (MCac
 walk :: forall m a. Monad m => ZipperPath -> ZipperM m a -> m (Array a)
 walk path zipper = case uncons path of
     Nothing -> pure [focus zipper]
-    Just { head, tail } -> 
-        let
-            mz = case head of
+    Just { head, tail } -> do
+        mz <- case head of
                 P -> prev zipper
                 N -> next zipper
-        in
-            case mz of
+        case mz of
                 Nothing -> pure [focus zipper]
-                Just zipper' -> cons (focus zipper) <$> (walk tail =<< zipper')
+                Just zipper' -> cons (focus zipper) <$> (walk tail zipper')
 
 -- | Walk a zipper with a specific path. The Zipper's focus is the first element.
 -- | If the path walks off the zipper, a repeat of the focus will be added till the path
