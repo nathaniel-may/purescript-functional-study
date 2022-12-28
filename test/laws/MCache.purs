@@ -3,6 +3,7 @@ module Test.Laws.MCache where
 import Prelude
 
 import Data.Identity (Identity)
+import Data.MCache (MCache)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
 import ZipperM.Test.Utils (MCacheM(..))
@@ -33,6 +34,30 @@ laws = suite "mcache laws" do
             in (pure identity <*> cache) == cache
         )
 
-    -- Composition: pure (<<<) <*> f <*> g <*> h = f <*> (g <*> h)
-    -- Homomorphism: (pure f) <*> (pure x) = pure (f x)
-    -- Interchange: u <*> (pure y) = (pure (_ $ y)) <*> u
+    test "applicative composition" $
+        quickCheck (\(MCacheM mcache :: MCacheM Identity Int) ->
+            let cache = runIdentity mcache
+                f = pure (_ + 1)
+                g = pure (_ * 2)
+            in (pure (<<<) <*> f <*> g <*> cache) == (f <*> (g <*> cache))
+        )
+
+    test "applicative associative composition" $
+        quickCheck (\(MCacheM mcache :: MCacheM Identity Int) ->
+            let cache = runIdentity mcache
+                f = pure (_ + 1)
+                g = pure (_ * 2)
+            in ((<<<) <$> f <*> g <*> cache) == (f <*> (g <*> cache))
+        )
+
+    test "applicative homomorphism" $
+        quickCheck (\(x :: Int) ->
+            let f = (_ + 1)
+            in ((pure f) <*> (pure x)) == (pure (f x) :: MCache Identity Int)
+        )
+
+    test "applicative interchange" $
+        quickCheck (\(x :: Int) ->
+            let f = pure (_ - 1) :: MCache Identity (Int -> Int)
+            in (f <*> (pure x)) == ((pure (_ $ x)) <*> f)
+        )
