@@ -3,12 +3,24 @@ module ZipperM.Test.Utils where
 import Prelude
 
 import Data.Array (cons, uncons)
+import Data.MCache (MCache(..), force)
 import Data.Maybe (Maybe(..))
 import Data.ZipperM (ZipperM, focus, next, next', prev, prev')
+import Test.QuickCheck (class Arbitrary, arbitrary)
+
 
 data PN = P | N
 
 type ZipperPath = Array PN
+
+newtype MCacheM m a = MCacheM (m (MCache m a))
+
+instance arbitraryMCacheM :: (Applicative m, Arbitrary (m a)) => Arbitrary (MCacheM m a) where
+    arbitrary = do
+        m <- arbitrary
+        b <- arbitrary
+        let cache = MCache m Nothing
+        pure <<< MCacheM $ if b then pure cache else force cache
 
 -- | walk a zipper with a specific path. The Zipper's focus is the first element.
 -- | If the path walks off the zipper, the path up till that point will be returned.
