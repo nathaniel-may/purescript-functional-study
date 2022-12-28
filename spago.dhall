@@ -11,6 +11,8 @@
   , "prelude"
   , "quickcheck"
   , "transformers"
+  , "tuples"
+  , "unfoldable"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
