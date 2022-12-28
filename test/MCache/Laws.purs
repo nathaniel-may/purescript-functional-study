@@ -13,7 +13,7 @@ import ZipperM.Utils (runIdentity)
 
 -- | tests are written on the newtype wrapper MCacheM so that some values are forced
 tests :: TestSuite
-tests = suite "mcache laws" do
+tests = suite "MCache laws" do
 
     test "functor identity" $
         quickCheck (\(MCacheM mcache :: MCacheM Identity Boolean) ->

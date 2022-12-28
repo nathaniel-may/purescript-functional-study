@@ -18,7 +18,7 @@ import ZipperM.Utils (runIdentity)
 
 
 tests :: TestSuite
-tests = suite "unit tests" do
+tests = suite "Zipper unit tests" do
 
     test "toUnfoldable" do
         let input = (fromFoldable $ pure <$> [1, 2, 3, 4] :: List (Identity Int))

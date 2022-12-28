@@ -16,7 +16,7 @@ import ZipperM.Utils (runIdentity)
 
 
 tests :: TestSuite
-tests = suite "unit tests" do
+tests = suite "ZipperM unit tests" do
 
     test "next and prev foward and back" do
         let input = (fromFoldable $ pure <$> [1, 2] :: List (Identity Int))
