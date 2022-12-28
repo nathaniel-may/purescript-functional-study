@@ -1,16 +1,4 @@
-module Data.ZipperM (
-    ZipperM -- not exporting constructor
-    , focus
-    , mkZipperM
-    , mkZipperM'
-    , next
-    , next'
-    , nextT
-    , prev
-    , prev'
-    , prevT
-    , toArray
-) where
+module Data.ZipperM where
 
 import Prelude
 
