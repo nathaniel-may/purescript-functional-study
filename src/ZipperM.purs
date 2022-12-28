@@ -5,7 +5,7 @@ import Prelude
 import Control.Monad.Maybe.Trans (MaybeT(..))
 import Data.List.Lazy (List, nil, (:))
 import Data.List.Lazy as List
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe, fromMaybe, maybe)
 import Data.Traversable (sequence)
 import ZipperM.Utils (init', tail')
 
