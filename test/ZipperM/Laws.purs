@@ -2,9 +2,8 @@ module Test.ZipperM.Laws (tests) where
 
 import Prelude
 
-import Control.Comonad (extend, extract, (<<=))
 import Data.Identity (Identity)
-import Data.ZipperM (ZipperM, focus)
+import Data.ZipperM (ZipperM)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
 
