@@ -67,22 +67,7 @@ last :: forall m a. Monad m => ZipperM m a -> m (ZipperM m a)
 last zipper = maybe (pure zipper) last =<< next zipper
 
 toList :: forall m a. Applicative m => ZipperM m a -> List (m a)
-toList (ZipperM l z r) = l <> (pure z : nil) <> r
+toList (ZipperM l z r) = List.reverse l <> (pure z : nil) <> r
 
 toArray :: forall m a. Applicative m => ZipperM m a -> Array (m a)
-toArray = List.toUnfoldable <<< toList
-
--- TODO should this be part of an UnfoldableM1 class?
-unfoldM1 :: forall m a b. Monad m => (b -> m (Tuple a (Maybe b))) -> b -> m (ZipperM m a)
-unfoldM1 f z = do
-    Tuple x my <- f z
-    case my of
-        Nothing -> pure $ ZipperM nil x nil
-        Just y -> ZipperM nil x <<< map pure <$> go f y
-    where 
-    go :: (b -> m (Tuple a (Maybe b))) -> b -> m (List a)
-    go f' z' = do
-        Tuple x my <- f' z'
-        case my of
-            Nothing -> pure nil
-            Just y -> List.cons x <$> go f' y
+toArray (ZipperM l z r) = List.toUnfoldable (List.reverse l) <> [pure z] <> List.toUnfoldable r
