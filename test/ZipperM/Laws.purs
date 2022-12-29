@@ -2,7 +2,7 @@ module Test.ZipperM.Laws (tests) where
 
 import Prelude
 
-import Control.Comonad (extend)
+import Control.Comonad (extend, extract, (<<=))
 import Data.Identity (Identity)
 import Data.ZipperM (ZipperM, focus)
 import Test.Unit (TestSuite, suite, test)
@@ -32,4 +32,13 @@ tests = suite "ZipperM laws" do
             in (extend f <<< extend g) zipper == (extend (f <<< extend g)) zipper
         )
 
-    -- TODO comonad laws
+    test "comonad left identity" $
+        quickCheck (\(zipper :: ZipperM Identity Boolean) ->
+            (extract <<= zipper) == zipper
+        )
+
+    test "comonad right identity" $
+        quickCheck (\(zipper :: ZipperM Identity Int) ->
+            let f = (_ + 1) <<< focus
+            in (extract (f <<= zipper)) == f zipper
+        )

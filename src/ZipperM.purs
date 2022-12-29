@@ -33,9 +33,10 @@ instance unfoldable1ZipperM :: Applicative m => Unfoldable1 (ZipperM m) where
 instance functorZipperM :: Functor m => Functor (ZipperM m) where
     map f (ZipperM l x r) = ZipperM (map (map f) l) (f x) (map (map f) r)
 
+-- TODO this is wrong
 instance extendZipperM :: Functor m => Extend (ZipperM m) where
     extend :: forall b a. (ZipperM m a -> b) -> ZipperM m a -> ZipperM m b
-    extend f x = ZipperM nil (f x) nil
+    extend f zipper = ZipperM nil (f zipper) nil
 
 instance comonadZipperM :: Functor m => Comonad (ZipperM m) where
     extract = focus
