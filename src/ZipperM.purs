@@ -2,6 +2,7 @@ module Data.ZipperM where
 
 import Prelude
 
+import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
 import Control.Monad.Maybe.Trans (MaybeT(..))
 import Data.List.Lazy (List, nil, (:))
@@ -13,21 +14,25 @@ import Data.Unfoldable (class Unfoldable1, unfoldr1)
 import ZipperM.Utils (init', tail')
 
 
--- TODO swap Lazy Lists for buffers that can drop from the back. Maybe use Data.Sequence?
+-- TODO makek a new type with buffers on either side that can drop from the back. Maybe use Data.Sequence?
 data ZipperM m a = ZipperM (List (m a)) a (List (m a))
 
+-- really only practical for non effectful zippers. TODO should it be included?
 instance unfoldable1ZipperM :: Applicative m => Unfoldable1 (ZipperM m) where
     unfoldr1 :: forall a b. (b -> Tuple a (Maybe b)) -> b -> ZipperM m a
     unfoldr1 f z = case f z of
         Tuple x Nothing -> ZipperM nil x nil
         Tuple x (Just y) -> ZipperM nil x (pure <$> unfoldr1 f y)
 
--- instance functorZipperM :: Monad m => Functor (ZipperM m) where
---     map f zipper = toUnfoldable ... TODO
+instance functorZipperM :: Functor m => Functor (ZipperM m) where
+    map f (ZipperM l x r) = ZipperM (map (map f) l) (f x) (map (map f) r)
 
--- instance extendZipperM :: Extend (ZipperM m) where
---     extend :: forall b a. (ZipperM m a -> b) -> ZipperM m a -> ZipperM m b
---     extend f x = ZipperM nil (f x) nil
+instance extendZipperM :: Functor m => Extend (ZipperM m) where
+    extend :: forall b a. (ZipperM m a -> b) -> ZipperM m a -> ZipperM m b
+    extend f x = ZipperM nil (f x) nil
+
+instance comonadZipperM :: Functor m => Comonad (ZipperM m) where
+    extract = focus
 
 mkZipperM :: forall m a. a -> List (m a) -> ZipperM m a
 mkZipperM = ZipperM nil
