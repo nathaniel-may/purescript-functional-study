@@ -31,9 +31,6 @@ instance extendMCacheW :: Functor w => Extend (MCache w) where
 
 -- Note: MCache is not a comonad because it breaks the left identity law
 
--- TODO is this possible to describe?
--- instance bindMCacheM :: Bind m => Bind (m (MCache m a)) where
-
 instance arbitraryMCache :: Arbitrary (m a) => Arbitrary (MCache m a) where
     arbitrary = (\x -> MCache x Nothing) <$> arbitrary
 
@@ -45,6 +42,6 @@ force :: forall m a. Applicative m => MCache m a -> m (MCache m a)
 force (MCache mx Nothing) = (\x -> MCache mx $ Just x) <$> mx
 force cache = pure cache
 
-evict :: forall m a. Applicative m => MCache m a -> MCache m a
+evict :: forall m a. MCache m a -> MCache m a
 evict (MCache mx (Just _)) = MCache mx Nothing
 evict cache = cache
