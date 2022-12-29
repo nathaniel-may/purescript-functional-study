@@ -2,16 +2,32 @@ module Data.ZipperM where
 
 import Prelude
 
+import Control.Extend (class Extend)
 import Control.Monad.Maybe.Trans (MaybeT(..))
 import Data.List.Lazy (List, nil, (:))
 import Data.List.Lazy as List
-import Data.Maybe (Maybe, fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Traversable (sequence)
+import Data.Tuple (Tuple(..))
+import Data.Unfoldable (class Unfoldable1, unfoldr1)
 import ZipperM.Utils (init', tail')
 
 
 -- TODO swap Lazy Lists for buffers that can drop from the back. Maybe use Data.Sequence?
 data ZipperM m a = ZipperM (List (m a)) a (List (m a))
+
+instance unfoldable1ZipperM :: Applicative m => Unfoldable1 (ZipperM m) where
+    unfoldr1 :: forall a b. (b -> Tuple a (Maybe b)) -> b -> ZipperM m a
+    unfoldr1 f z = case f z of
+        Tuple x Nothing -> ZipperM nil x nil
+        Tuple x (Just y) -> ZipperM nil x (pure <$> unfoldr1 f y)
+
+-- instance functorZipperM :: Monad m => Functor (ZipperM m) where
+--     map f zipper = toUnfoldable ... TODO
+
+-- instance extendZipperM :: Extend (ZipperM m) where
+--     extend :: forall b a. (ZipperM m a -> b) -> ZipperM m a -> ZipperM m b
+--     extend f x = ZipperM nil (f x) nil
 
 mkZipperM :: forall m a. a -> List (m a) -> ZipperM m a
 mkZipperM = ZipperM nil
@@ -56,5 +72,17 @@ toList (ZipperM l z r) = l <> (pure z : nil) <> r
 toArray :: forall m a. Applicative m => ZipperM m a -> Array (m a)
 toArray = List.toUnfoldable <<< toList
 
--- TODO write a util unfoldM and then fill this in
--- toUnfoldable :: forall m f a. Monad m => Unfoldable f => ZipperM m a -> m (f a)
+-- TODO should this be part of an UnfoldableM1 class?
+unfoldM1 :: forall m a b. Monad m => (b -> m (Tuple a (Maybe b))) -> b -> m (ZipperM m a)
+unfoldM1 f z = do
+    Tuple x my <- f z
+    case my of
+        Nothing -> pure $ ZipperM nil x nil
+        Just y -> ZipperM nil x <<< map pure <$> go f y
+    where 
+    go :: (b -> m (Tuple a (Maybe b))) -> b -> m (List a)
+    go f' z' = do
+        Tuple x my <- f' z'
+        case my of
+            Nothing -> pure nil
+            Just y -> List.cons x <$> go f' y
