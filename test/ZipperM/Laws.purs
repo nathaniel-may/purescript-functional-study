@@ -24,21 +24,3 @@ tests = suite "ZipperM laws" do
                 g = (_ * 2)
             in (map (f <<< g) zipper) == (map f <<< map g $ zipper)
         )
-
-    test "extend associativity" $
-        quickCheck (\(zipper :: ZipperM Identity Int) ->
-            let f = (_ + 1) <<< focus
-                g = (_ * 2) <<< focus
-            in (extend f <<< extend g) zipper == (extend (f <<< extend g)) zipper
-        )
-
-    test "comonad left identity" $
-        quickCheck (\(zipper :: ZipperM Identity Boolean) ->
-            (extract <<= zipper) == zipper
-        )
-
-    test "comonad right identity" $
-        quickCheck (\(zipper :: ZipperM Identity Int) ->
-            let f = (_ + 1) <<< focus
-            in (extract (f <<= zipper)) == f zipper
-        )

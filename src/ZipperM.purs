@@ -2,8 +2,6 @@ module Data.ZipperM where
 
 import Prelude
 
-import Control.Comonad (class Comonad)
-import Control.Extend (class Extend)
 import Control.Monad.Maybe.Trans (MaybeT(..))
 import Data.Array as Array
 import Data.List.Lazy (List, nil, (:))
@@ -33,13 +31,7 @@ instance unfoldable1ZipperM :: Applicative m => Unfoldable1 (ZipperM m) where
 instance functorZipperM :: Functor m => Functor (ZipperM m) where
     map f (ZipperM l x r) = ZipperM (map (map f) l) (f x) (map (map f) r)
 
--- TODO this is wrong
-instance extendZipperM :: Functor m => Extend (ZipperM m) where
-    extend :: forall b a. (ZipperM m a -> b) -> ZipperM m a -> ZipperM m b
-    extend f zipper = ZipperM nil (f zipper) nil
-
-instance comonadZipperM :: Functor m => Comonad (ZipperM m) where
-    extract = focus
+-- ZipperM is not a comonad because extend cannot be implemented for arbitrary effects
 
 instance arbitraryZipperM :: (Arbitrary (m a), Arbitrary a) => Arbitrary (ZipperM m a) where
     arbitrary = do
