@@ -5,8 +5,7 @@ import Prelude
 import Data.Identity (Identity(..))
 import Data.List.Lazy (List, nil)
 import Data.List.Lazy as List
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Tuple (Tuple(..))
+import Data.Maybe (fromMaybe)
 
 
 tail' :: forall a. List a -> List a

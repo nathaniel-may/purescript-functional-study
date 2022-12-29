@@ -5,17 +5,23 @@ import Prelude
 import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
 import Control.Monad.Maybe.Trans (MaybeT(..))
+import Data.Array as Array
 import Data.List.Lazy (List, nil, (:))
 import Data.List.Lazy as List
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable1, unfoldr1)
+import Test.QuickCheck (class Arbitrary, arbitrary)
 import ZipperM.Utils (init', tail')
 
 
 -- TODO makek a new type with buffers on either side that can drop from the back. Maybe use Data.Sequence?
 data ZipperM m a = ZipperM (List (m a)) a (List (m a))
+
+-- TODO implement without toArray. Maybe dump the Applicative constraint?
+instance eqZipperM :: (Applicative m, Eq (m a), Eq a) => Eq (ZipperM m a) where
+    eq z z' = toArray z == toArray z'
 
 -- really only practical for non effectful zippers. TODO should it be included?
 instance unfoldable1ZipperM :: Applicative m => Unfoldable1 (ZipperM m) where
@@ -34,11 +40,24 @@ instance extendZipperM :: Functor m => Extend (ZipperM m) where
 instance comonadZipperM :: Functor m => Comonad (ZipperM m) where
     extract = focus
 
+instance arbitraryZipperM :: (Arbitrary (m a), Arbitrary a) => Arbitrary (ZipperM m a) where
+    arbitrary = do
+        x <- arbitrary
+        xs <- arbitrary
+        pure $ fromArray1 x xs
+
+-- TODO rename "fromList1"
 mkZipperM :: forall m a. a -> List (m a) -> ZipperM m a
 mkZipperM = ZipperM nil
 
+-- TODO rename "fromList"
 mkZipperM' :: forall m a. Applicative m => List (m a) -> m (Maybe (ZipperM m a))
 mkZipperM' xs = map (\z -> ZipperM nil z xs) <$> (sequence $ List.head xs)
+
+fromArray1 :: forall m a. a -> Array (m a) -> ZipperM m a
+fromArray1 x xs = ZipperM nil x (Array.toUnfoldable xs)
+
+-- TODO add fromArray?
 
 next :: forall m a. Applicative m => ZipperM m a -> m (Maybe (ZipperM m a))
 next (ZipperM left z right) =
