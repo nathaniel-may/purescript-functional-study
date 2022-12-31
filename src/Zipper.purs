@@ -3,22 +3,27 @@ module Data.Zipper where
 import Prelude
 
 import Data.Identity (Identity)
+import Data.Lazy (force)
 import Data.List.Lazy (List)
+import Data.List.Lazy.Types (NonEmptyList(..))
 import Data.Maybe (Maybe)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr1)
-import Data.ZipperM (ZipperM, focus, mkZipperM, mkZipperM')
+import Data.ZipperM (ZipperM, focus)
 import Data.ZipperM as ZipperM
 import ZipperM.Utils (runIdentity)
+import Data.NonEmpty as NonEmpty
 
 
 type Zipper a = ZipperM Identity a
 
-mkZipper :: forall a. a -> List a -> Zipper a
-mkZipper x = mkZipperM x <<< map pure
+fromNonEmpty :: forall a. NonEmptyList a -> Zipper a
+fromNonEmpty (NonEmptyList xs') = 
+    ZipperM.fromList1 (NonEmpty.head xs) (pure <$> NonEmpty.tail xs)
+    where xs = force xs'
 
-mkZipper' :: forall a. List a -> Maybe (Zipper a)
-mkZipper' = runIdentity <<< mkZipperM' <<< map pure
+fromList :: forall a. List a -> Maybe (Zipper a)
+fromList = runIdentity <<< ZipperM.fromList <<< map pure
 
 next :: forall a. Zipper a -> Maybe (Zipper a)
 next = runIdentity <<< ZipperM.next

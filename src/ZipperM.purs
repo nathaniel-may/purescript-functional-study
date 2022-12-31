@@ -3,7 +3,6 @@ module Data.ZipperM where
 import Prelude
 
 import Control.Monad.Maybe.Trans (MaybeT(..))
-import Data.Array as Array
 import Data.List.Lazy (List, nil, (:))
 import Data.List.Lazy as List
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
@@ -11,6 +10,7 @@ import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable1, unfoldr1)
 import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck.Gen (Gen)
 import ZipperM.Utils (init', tail')
 
 
@@ -36,21 +36,18 @@ instance functorZipperM :: Functor m => Functor (ZipperM m) where
 instance arbitraryZipperM :: (Arbitrary (m a), Arbitrary a) => Arbitrary (ZipperM m a) where
     arbitrary = do
         x <- arbitrary
-        xs <- arbitrary
-        pure $ fromArray1 x xs
+        xs <- arbitrary :: Gen (Array (m a))
+        pure $ fromList1 x (List.fromFoldable xs)
 
--- TODO rename "fromList1"
-mkZipperM :: forall m a. a -> List (m a) -> ZipperM m a
-mkZipperM = ZipperM nil
+fromList1 :: forall m a. a -> List (m a) -> ZipperM m a
+fromList1 = ZipperM nil
 
--- TODO rename "fromList"
-mkZipperM' :: forall m a. Applicative m => List (m a) -> m (Maybe (ZipperM m a))
-mkZipperM' xs = map (\z -> ZipperM nil z xs) <$> (sequence $ List.head xs)
-
-fromArray1 :: forall m a. a -> Array (m a) -> ZipperM m a
-fromArray1 x xs = ZipperM nil x (Array.toUnfoldable xs)
-
--- TODO add fromArray?
+fromList :: forall m a. Applicative m => List (m a) -> m (Maybe (ZipperM m a))
+fromList xs = case List.uncons xs of
+    Nothing ->
+        pure Nothing
+    Just { head, tail } -> 
+        sequence <<< pure $ map (\h -> ZipperM nil h tail) head
 
 next :: forall m a. Applicative m => ZipperM m a -> m (Maybe (ZipperM m a))
 next (ZipperM left z right) =
