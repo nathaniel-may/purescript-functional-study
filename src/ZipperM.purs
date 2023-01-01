@@ -14,10 +14,8 @@ import Test.QuickCheck.Gen (Gen)
 import ZipperM.Utils (init', tail')
 
 
--- TODO makek a new type with buffers on either side that can drop from the back. Maybe use Data.Sequence?
 data ZipperM m a = ZipperM (List (m a)) a (List (m a))
 
--- TODO implement without toArray. Maybe dump the Applicative constraint?
 instance eqZipperM :: (Applicative m, Eq (m a), Eq a) => Eq (ZipperM m a) where
     eq z z' = toArray z == toArray z'
 

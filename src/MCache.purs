@@ -34,6 +34,9 @@ instance extendMCacheW :: Functor w => Extend (MCache w) where
 instance arbitraryMCache :: Arbitrary (m a) => Arbitrary (MCache m a) where
     arbitrary = (\x -> MCache x Nothing) <$> arbitrary
 
+uncached :: forall m a. m a -> MCache m a
+uncached mx = MCache mx Nothing
+
 run :: forall m a. Applicative m => MCache m a -> m a
 run (MCache _ (Just x)) = pure x
 run (MCache mx Nothing) = mx
