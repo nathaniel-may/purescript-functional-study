@@ -15,6 +15,8 @@ import ZipperM.Utils (runIdentity)
 import Data.NonEmpty as NonEmpty
 
 
+-- TODO implement without ZipperM
+-- TODO implement Necklace and NecklaceM
 type Zipper a = ZipperM Identity a
 
 fromNonEmpty :: forall a. NonEmptyList a -> Zipper a

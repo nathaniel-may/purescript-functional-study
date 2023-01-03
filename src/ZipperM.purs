@@ -78,6 +78,14 @@ first zipper = maybe (pure zipper) first =<< prev zipper
 last :: forall m a. Monad m => ZipperM m a -> m (ZipperM m a)
 last zipper = maybe (pure zipper) last =<< next zipper
 
+-- | inserts a new value at to the left of the focus
+insertLeft :: forall m a. m a -> ZipperM m a -> ZipperM m a
+insertLeft x (ZipperM l z r) = ZipperM (List.cons x l) z r
+
+-- | inserts a new value at to the right of the focus
+insertRight :: forall m a. m a -> ZipperM m a -> ZipperM m a
+insertRight x (ZipperM l z r) = ZipperM l z (List.cons x r)
+
 toList :: forall m a. Applicative m => ZipperM m a -> List (m a)
 toList (ZipperM l z r) = List.reverse l <> (pure z : nil) <> r
 
