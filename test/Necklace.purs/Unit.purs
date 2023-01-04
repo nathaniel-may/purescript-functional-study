@@ -6,7 +6,7 @@ module Test.Necklace.Unit
 
 import Prelude
 
-import Data.Necklace (focus, insertRight, next, prev, size)
+import Data.Necklace (focus, insertLeft, insertRight, next, prev, size)
 import Data.Necklace as Necklace
 import Data.NonEmpty ((:|))
 import Test.Unit (TestSuite, suite, test)
@@ -31,6 +31,16 @@ tests = suite "Necklace unit tests" do
         let n2 = next n1
         Assert.equal 1 (focus n2)
         let n3 = next n2
+        Assert.equal 0 (focus n3)
+        Assert.equal 2 (size n3)
+
+    test "insertLeft on singleton" do
+        let n0 = Necklace.singleton 0
+        let n1 = insertLeft 1 n0
+        Assert.equal 0 (focus n1)
+        let n2 = prev n1
+        Assert.equal 1 (focus n2)
+        let n3 = prev n2
         Assert.equal 0 (focus n3)
         Assert.equal 2 (size n3)
 

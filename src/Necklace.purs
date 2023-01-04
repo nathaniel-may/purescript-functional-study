@@ -35,43 +35,43 @@ focus :: forall a. Necklace a -> a
 focus (Necklace entry _ _) = entry.v
 
 insertRight :: forall a. a -> Necklace a -> Necklace a
-insertRight y (Necklace { k, v, n, p } m iMax) = 
-    let yKey = iMax+1
+insertRight y (Necklace { k, v, n, p } m size) = 
+    let yKey = size + 1
         yEntry =
-            if M.size m == 1
+            if size == 1
             then { k: yKey, v: y, p: k, n: k }
             else { k: yKey, v: y, p: k, n: n }
         entry =
-            if M.size m == 1
-            then { k: k, v: v, p: n, n: yKey }
+            if size == 1
+            then { k: k, v: v, p: yKey, n: yKey }
             else { k: k, v: v, p: p, n: yKey }
         m' = M.insert yKey yEntry <<< M.insert k entry $ m
     in
-        Necklace entry m' yKey
+        Necklace entry m' (size + 1)
 
 insertLeft :: forall a. a -> Necklace a -> Necklace a
-insertLeft y (Necklace { k, v, n, p } m iMax) = 
-    let yKey = iMax+1
+insertLeft y (Necklace { k, v, n, p } m size) = 
+    let yKey = size + 1
         yEntry =
-            if M.size m == 1
+            if size == 1
             then { k: yKey, v: y, p: k, n: k }
             else { k: yKey, v: y, p: p, n: k }
         entry =
-            if M.size m == 1
-            then { k: k, v: v, p: n, n: yKey }
+            if size == 1
+            then { k: k, v: v, p: yKey, n: yKey }
             else { k: k, v: v, p: yKey, n: n }
         m' = M.insert yKey yEntry <<< M.insert k entry $ m
     in
-        Necklace entry m' yKey
+        Necklace entry m' (size + 1)
 
--- if this is implemented correctly, the lookup will never return Nothing.
+-- if Necklace is implemented correctly, the lookup will never return Nothing.
 -- TODO write a prop test to ensure this ^^
 next :: forall a. Necklace a -> Necklace a
 next x@(Necklace entry m i) = fromMaybe x $ do
     v <- M.lookup entry.n m
     pure (Necklace v m i)
 
--- if this is implemented correctly, the lookup will never return Nothing.
+-- if Necklace is implemented correctly, the lookup will never return Nothing.
 -- TODO write a prop test to ensure this ^^
 prev :: forall a. Necklace a -> Necklace a
 prev x@(Necklace entry m i) = fromMaybe x $ do
@@ -79,7 +79,7 @@ prev x@(Necklace entry m i) = fromMaybe x $ do
     pure (Necklace v m i)
 
 size :: forall a. Necklace a -> Int
-size (Necklace _ m _) = M.size m
+size (Necklace _ _ x) = x
 
 toUnfoldable1 :: forall f a. Unfoldable1 f => Necklace a -> f a
 toUnfoldable1 xs = unfoldr1 f (Tuple (size xs) xs)
