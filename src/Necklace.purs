@@ -35,34 +35,34 @@ focus :: forall a. Necklace a -> a
 focus (Necklace entry _ _) = entry.v
 
 insertRight :: forall a. a -> Necklace a -> Necklace a
-insertRight y (Necklace { k, v, n, p } m size) = 
-    let yKey = size + 1
+insertRight y (Necklace { k, v, n, p } m sz) = 
+    let yKey = sz + 1
         yEntry =
-            if size == 1
+            if sz == 1
             then { k: yKey, v: y, p: k, n: k }
             else { k: yKey, v: y, p: k, n: n }
         entry =
-            if size == 1
+            if sz == 1
             then { k: k, v: v, p: yKey, n: yKey }
             else { k: k, v: v, p: p, n: yKey }
         m' = M.insert yKey yEntry <<< M.insert k entry $ m
     in
-        Necklace entry m' (size + 1)
+        Necklace entry m' (sz + 1)
 
 insertLeft :: forall a. a -> Necklace a -> Necklace a
-insertLeft y (Necklace { k, v, n, p } m size) = 
-    let yKey = size + 1
+insertLeft y (Necklace { k, v, n, p } m sz) = 
+    let yKey = sz + 1
         yEntry =
-            if size == 1
+            if sz == 1
             then { k: yKey, v: y, p: k, n: k }
             else { k: yKey, v: y, p: p, n: k }
         entry =
-            if size == 1
+            if sz == 1
             then { k: k, v: v, p: yKey, n: yKey }
             else { k: k, v: v, p: yKey, n: n }
         m' = M.insert yKey yEntry <<< M.insert k entry $ m
     in
-        Necklace entry m' (size + 1)
+        Necklace entry m' (sz + 1)
 
 -- if Necklace is implemented correctly, the lookup will never return Nothing.
 -- TODO write a prop test to ensure this ^^
