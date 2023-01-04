@@ -6,7 +6,7 @@ ci:
 # build everything but the tests
 .PHONY: build
 build:
-	spago build --path src
+	spago -x spago.dhall build
 
 # build and run tests
 .PHONY: test
