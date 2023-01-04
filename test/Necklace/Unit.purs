@@ -6,12 +6,15 @@ module Test.Necklace.Unit
 
 import Prelude
 
-import Data.Necklace (focus, insertLeft, insertRight, next, prev, size)
+import Data.Array as Array
+import Data.Maybe (Maybe(..))
+import Data.Necklace (Necklace, focus, insertLeft, insertRight, next, prev, size)
 import Data.Necklace as Necklace
 import Data.NonEmpty ((:|))
 import Test.Utils (PN(..), walkNecklace)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert as Assert
+import Test.Unit.QuickCheck (quickCheck)
 
 
 tests :: TestSuite
@@ -101,11 +104,18 @@ tests = suite "Necklace unit tests" do
             (show xs <> " != " <> show xs')
             (xs == xs')
 
+    test "prev and next work as expected" $
+        quickCheck (\(necklace :: Necklace Int) -> do
+            let ys = Necklace.toUnfoldable1 necklace
+            let n = focus (next necklace)
+            let p = focus (prev necklace)
+            case ys of
+                [x] -> x == n && x == p
+                xs  -> (Array.last xs) == (Just p)
+                    && (Array.head =<< Array.tail xs) == (Just n)
+        )
+
     test "walk twice around" do
-        let xs = (0 :| [1, 2])
-        let necklace = Necklace.fromNonEmpty xs
-        let xs' = walkNecklace [N, N, N, N, N] necklace
-        let expected = [0, 1, 2, 0, 1, 2]
-        Assert.assert
-            (show expected <> " != " <> show xs')
-            (expected == xs')
+        let necklace = Necklace.fromNonEmpty (0 :| [1, 2])
+        Assert.equal [0, 1, 2, 0, 1, 2] (walkNecklace [N, N, N, N, N] necklace)
+        Assert.equal [0, 2, 1, 0, 2, 1] (walkNecklace [P, P, P, P, P] necklace)
