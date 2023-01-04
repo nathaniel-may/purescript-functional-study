@@ -2,11 +2,13 @@ module Data.Necklace where
 
 import Prelude
 
-import Data.Foldable (class Foldable, foldl)
+import Control.Comonad (class Comonad, class Extend)
+import Data.Foldable (class Foldable, foldl, foldr)
 import Data.HashMap (HashMap)
 import Data.HashMap as M
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmpty (NonEmpty, head, tail)
+import Data.Semigroup.Foldable (class Foldable1, foldr1)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable1 (class Unfoldable1, unfoldr1)
 
@@ -20,6 +22,52 @@ type Entry a =
 
 -- TODO move constructor to internal module and re-export
 data Necklace a = Necklace (Entry a) (HashMap Int (Entry a)) Int
+
+-- identical Necklaces that are not in the same focus position are not equal
+instance eqNecklace :: Eq a => Eq (Necklace a) where
+    eq (Necklace entry m _) (Necklace entry' m') =
+        entry == entry' && m == m'
+
+-- instance foldableNecklace :: Foldable Necklace where
+--     foldr :: forall a b. (a -> b -> b) -> b -> Necklace a -> b
+--     foldr f z xs@(Necklace { k, v, n, p } _ _) = foldr' k f z xs
+--         where
+--         foldr' start f' z' xs'@(Necklace { k, v, n, p } _ _) =
+--             if start == n
+--             then z'
+--             else f (focus xs') (foldr' start f z' (next xs'))
+
+--     foldl :: forall a b. (b -> a -> b) -> b -> Necklace a -> b
+--     foldl f z xs@(Necklace { k, v, n, p } _ _) = foldlBOOP k f z xs
+--         where
+--         foldlBOOP start f' z' xs'@(Necklace { k, v, n, p } _ _) =
+--             if start == n
+--             then z'
+--             else foldlBOOP f' (f' z' (focus xs')) (next xs')
+
+--     foldMap :: forall a m. Monoid m => (a -> m) -> Necklace a -> m
+--     foldMap = 0
+
+-- TODO add instance for Foldable1
+
+instance functorNecklace :: Functor Necklace where
+    map f (Necklace entry m sz) = Necklace (f' entry) (map f' m) sz
+        where
+        f' someEntry@{ k: _, v: v, n: _, p: _ } = someEntry { v = f v }
+
+instance extractNecklace :: Extend Necklace where
+    extend :: forall b a. (Necklace a -> b) -> Necklace a -> Necklace b
+    extend f = map f <<< duplicate
+        where
+        duplicate :: forall a. Necklace a -> Necklace (Necklace a)
+        duplicate xs = foldr f (singleton xs) (next xs)
+
+        f :: forall a. Necklace a -> Necklace (Necklace a) -> Necklace (Necklace a)
+        f y ys = next $ insertRight y ys
+
+instance comonadNecklace :: Comonad Necklace where
+    extract :: forall a. Necklace a -> a
+    extract = focus
 
 fromNonEmpty :: forall f a. Foldable f => NonEmpty f a -> Necklace a
 fromNonEmpty xs = next $ foldl (\ys y -> next $ insertRight y ys) (singleton $ head xs) (tail xs)
