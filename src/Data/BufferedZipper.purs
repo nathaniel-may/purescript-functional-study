@@ -58,7 +58,6 @@ next (BufferedZipper l z r) = (case _ of
             Just $ BufferedZipper (Array.cons (MCache.run b) l) bs tail
     ) <$> (run $ ZipperM.prev z)
 
--- TODO fix those type annotations
 prev :: forall m a. Applicative m => BufferedZipper m a -> m (Maybe (BufferedZipper m a))
 prev (BufferedZipper l z r) = (case _ of
     Just z' -> Just $ BufferedZipper l z' r

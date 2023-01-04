@@ -3,11 +3,13 @@ module Data.Necklace where
 import Prelude
 
 import Control.Comonad (class Comonad, class Extend)
-import Data.Foldable (class Foldable, foldl)
+import Data.Foldable (class Foldable, foldl, foldr)
+import Data.Semigroup.Foldable (foldMap1)
 import Data.HashMap (HashMap)
 import Data.HashMap as M
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmpty (NonEmpty, head, tail)
+import Data.Semigroup.Foldable (class Foldable1)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable1 (class Unfoldable1, unfoldr1)
 import Test.QuickCheck (class Arbitrary, arbitrary)
@@ -53,7 +55,20 @@ instance foldableNecklace :: Foldable Necklace where
     foldMap :: forall a m. Monoid m => (a -> m) -> Necklace a -> m
     foldMap f xs = foldl append mempty (map f xs)
 
--- TODO add instance for Foldable1
+instance foldable1Necklace :: Foldable1 Necklace where
+    foldr1 :: forall a. (a -> a -> a) -> Necklace a -> a
+    foldr1 f xs = fromMaybe (focus xs) do
+        xs' <- removeLeft (next xs)
+        pure $ foldr f (focus xs) xs'
+
+    foldl1 :: forall a. (a -> a -> a) -> Necklace a -> a
+    foldl1 f xs = fromMaybe (focus xs) do
+        xs' <- removeLeft (next xs)
+        pure $ foldl f (focus xs) xs'
+
+    -- TODO make this effecient
+    foldMap1 :: forall a m. Semigroup m => (a -> m) -> Necklace a -> m
+    foldMap1 f xs = foldMap1 f $ (toUnfoldable1 xs :: NonEmpty Array a)
 
 instance functorNecklace :: Functor Necklace where
     map f (Necklace entry m sz) = Necklace (f' entry) (map f' m) sz
