@@ -1,9 +1,7 @@
 { name = "purescript-zipperm"
 , dependencies =
   [ "arrays"
-  , "console"
   , "control"
-  , "effect"
   , "foldable-traversable"
   , "identity"
   , "lazy"
@@ -18,5 +16,5 @@
   , "unordered-collections"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/**/*.purs", "test/**/*.purs" ]
+, sources = [ "src/**/*.purs"]
 }
