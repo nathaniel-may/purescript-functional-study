@@ -55,12 +55,6 @@ prev :: forall m a. Applicative m => ZipperM m a -> m (Maybe (ZipperM m a))
 prev (ZipperM left z right) =
     map (\z' -> ZipperM (init' left) z' (pure z `List.cons` right)) <$> (sequence $ List.last left)
 
-next' :: forall m a. Applicative m => ZipperM m a -> m (ZipperM m a)
-next' zipper = fromMaybe zipper <$> next zipper
-
-prev' :: forall m a. Applicative m => ZipperM m a -> m (ZipperM m a)
-prev' zipper = fromMaybe zipper <$> prev zipper
-
 nextT :: forall m a. Applicative m => ZipperM m a -> MaybeT m (ZipperM m a)
 nextT = MaybeT <<< next
 

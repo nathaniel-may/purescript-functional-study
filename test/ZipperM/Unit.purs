@@ -25,12 +25,6 @@ tests = suite "ZipperM unit tests" do
         let values = runIdentity $ walk [N, N, P, P, P] zipper
         Assert.equal [0, 1, 2, 1, 0] values
 
-    test "next' and prev' forward and back" do
-        let input = (fromFoldable $ pure <$> [1, 2] :: List (Identity Int))
-        let zipper = ZipperM.fromList1 0 input
-        let values = runIdentity $ walk' [P, N, N, N, P] zipper
-        Assert.equal [0, 0, 1, 2, 2, 1] values
-
     test "toList" do
         let input = (fromFoldable $ pure <$> [1, 2, 3, 4] :: List (Identity Int))
         let zipper = ZipperM.fromList1 0 input
