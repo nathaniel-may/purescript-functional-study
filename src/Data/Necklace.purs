@@ -95,6 +95,8 @@ insertRight :: forall a. a -> Necklace a -> Necklace a
 insertRight newValue old@(Necklace focusEntry@{ k, v, n, p } m maxKey) = 
     fromMaybe old $ do
         -- make the entry for the new value
+        -- TODO this limits to only MaxInt number of inserts. Should fill in removed index values as well for
+        -- potentially long-lived necklaces.
         let newKey = maxKey + 1
         let newEntry = { k: newKey, v: newValue, p: k, n: n }
 
@@ -141,7 +143,7 @@ insertLeft newValue old@(Necklace focusEntry@{ k, v, n, p } m maxKey) =
         -- make the necklace
         pure $ Necklace focusEntry' m' newKey
 
--- TODO add removeLeft, removeRight, and change "size" to maxIndex (it won't be the size anymore when you can remove elements)
+-- TODO add removeLeft, removeRight
 
 -- if Necklace is implemented correctly, the lookup will never return Nothing.
 -- TODO write a prop test to ensure this ^^
@@ -158,7 +160,7 @@ prev x@(Necklace entry m i) = fromMaybe x $ do
     pure (Necklace v m i)
 
 size :: forall a. Necklace a -> Int
-size (Necklace _ _ x) = x
+size (Necklace _ m _) = M.size m
 
 toUnfoldable1 :: forall f a. Unfoldable1 f => Necklace a -> f a
 toUnfoldable1 xs = unfoldr1 f (Tuple (size xs) xs)
