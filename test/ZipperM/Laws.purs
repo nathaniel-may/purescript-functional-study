@@ -8,7 +8,6 @@ import Test.Unit (TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
 
 
--- | tests are written on the newtype wrapper MCacheM so that some values are forced
 tests :: TestSuite
 tests = suite "ZipperM laws" do
 
