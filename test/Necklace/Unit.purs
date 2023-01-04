@@ -8,7 +8,7 @@ import Prelude
 
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
-import Data.Necklace (Necklace, focus, insertLeft, insertRight, next, prev, size)
+import Data.Necklace (Necklace, focus, insertLeft, insertRight, next, prev, removeRight, size)
 import Data.Necklace as Necklace
 import Data.NonEmpty ((:|))
 import Test.Utils (PN(..), walkNecklace)
@@ -119,3 +119,8 @@ tests = suite "Necklace unit tests" do
         let necklace = Necklace.fromNonEmpty (0 :| [1, 2])
         Assert.equal [0, 1, 2, 0, 1, 2] (walkNecklace [N, N, N, N, N] necklace)
         Assert.equal [0, 2, 1, 0, 2, 1] (walkNecklace [P, P, P, P, P] necklace)
+
+    test "removeRight" do
+        Assert.equal Nothing (removeRight $ Necklace.singleton 0)
+        let n0 = Necklace.fromNonEmpty (0 :| [1, 2])
+        Assert.equal (Just [0, 2]) (Necklace.toUnfoldable1 <$> removeRight n0)

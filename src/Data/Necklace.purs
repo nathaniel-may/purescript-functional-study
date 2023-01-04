@@ -29,6 +29,9 @@ instance eqNecklace :: Eq a => Eq (Necklace a) where
     eq (Necklace entry m _) (Necklace entry' m' _) =
         entry == entry' && m == m'
 
+instance showNecklace :: Show a => Show (Necklace a) where
+    show xs = "fromNonEmpty " <> show ((toUnfoldable1 xs) :: NonEmpty Array a)
+
 instance foldableNecklace :: Foldable Necklace where
     foldr :: forall a b. (a -> b -> b) -> b -> Necklace a -> b
     foldr f z xs@(Necklace { k: k, v: _, n: _, p: _ } _ _) = foldr' k f z xs
@@ -143,7 +146,26 @@ insertLeft newValue old@(Necklace focusEntry@{ k, v, n, p } m maxKey) =
         -- make the necklace
         pure $ Necklace focusEntry' m' newKey
 
--- TODO add removeLeft, removeRight
+removeRight :: forall a. Necklace a -> Maybe (Necklace a)
+removeRight old@(Necklace focusEntry@{ k, v, n, p } m maxKey) = 
+    if size old == 1
+    then Nothing
+    else do
+        -- get the value to be removed
+        {k:nk, v:_, p: _, n: nn} <- M.lookup n m
+        -- get the next next value and update it's p pointer
+        nnEntry' <- (_ { p=k }) <$> M.lookup nn m
+
+        -- update the n pointer for the element in focus in the necklace
+        let focusEntry' = (focusEntry { n=nn })
+
+        -- remove one and update two entries in the map
+        let m' = M.insert k focusEntry'
+                <<< M.insert nn nnEntry' 
+                <<< M.delete nk $ m
+
+        -- make the necklace
+        pure $ Necklace focusEntry' m' maxKey
 
 -- if Necklace is implemented correctly, the lookup will never return Nothing.
 -- TODO write a prop test to ensure this ^^
