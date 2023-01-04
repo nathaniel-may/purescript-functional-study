@@ -13,7 +13,7 @@ import Data.Maybe (Maybe(..))
 import Test.Unit (TestSuite, suite, test, testSkip)
 import Test.Unit.Assert (assert)
 import Test.Unit.Assert as Assert
-import ZipperM.Test.Utils (PN(..), bWalk)
+import ZipperM.Test.Utils (PN(..), walkBufferedZipper)
 import ZipperM.Utils (runIdentity)
 
 
@@ -27,7 +27,7 @@ tests = suite "ZipperM unit tests" do
         case runIdentity $ mkBufferedZipper 3 input of
             Nothing -> assert "failed to create the BufferedZipper" false
             Just zipper ->
-                let values = runIdentity $ bWalk [N, N, N, N, P, P, P, P] zipper
+                let values = runIdentity $ walkBufferedZipper [N, N, N, N, P, P, P, P] zipper
                 in Assert.equal [0, 1, 2, 3, 4, 3, 2, 1, 0] values
 
     test "toArray" do

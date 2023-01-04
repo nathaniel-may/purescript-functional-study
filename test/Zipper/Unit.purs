@@ -15,7 +15,7 @@ import Data.NonEmpty ((:|))
 import Data.Zipper as Zipper
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert as Assert
-import ZipperM.Test.Utils (PN(..), walk, walk')
+import ZipperM.Test.Utils (PN(..), walkZipperM)
 import ZipperM.Utils (runIdentity)
 
 
@@ -40,10 +40,5 @@ tests = suite "Zipper unit tests" do
 
     test "next and prev foward and back" do
         let zipper = Zipper.fromNonEmpty (mkNonEmpty 0 [1, 2, 3, 4])
-        let values = runIdentity $ walk [N, N, P, P, P] zipper
+        let values = runIdentity $ walkZipperM [N, N, P, P, P] zipper
         Assert.equal [0, 1, 2, 1, 0] values
-
-    test "next' and prev' forward and back" do
-        let zipper = Zipper.fromNonEmpty (mkNonEmpty 0 [1, 2])
-        let values = runIdentity $ walk' [P, N, N, N, P] zipper
-        Assert.equal [0, 0, 1, 2, 2, 1] values

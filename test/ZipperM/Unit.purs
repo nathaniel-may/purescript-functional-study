@@ -12,7 +12,7 @@ import Data.List.Lazy as List
 import Data.ZipperM as ZipperM
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert as Assert
-import ZipperM.Test.Utils (PN(..), walk, walk')
+import ZipperM.Test.Utils (PN(..), walkZipperM)
 import ZipperM.Utils (runIdentity)
 
 
@@ -22,7 +22,7 @@ tests = suite "ZipperM unit tests" do
     test "next and prev foward and back" do
         let input = (fromFoldable $ pure <$> [1, 2] :: List (Identity Int))
         let zipper = ZipperM.fromList1 0 input
-        let values = runIdentity $ walk [N, N, P, P, P] zipper
+        let values = runIdentity $ walkZipperM [N, N, P, P, P] zipper
         Assert.equal [0, 1, 2, 1, 0] values
 
     test "toList" do
