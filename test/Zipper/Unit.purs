@@ -15,8 +15,8 @@ import Data.NonEmpty ((:|))
 import Data.Zipper as Zipper
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert as Assert
-import ZipperM.Test.Utils (PN(..), walkZipperM)
-import ZipperM.Utils (runIdentity)
+import Test.Utils (PN(..), walkZipperM)
+import Utils (runIdentity)
 
 
 mkNonEmpty :: forall a. a -> Array a -> NonEmptyList a

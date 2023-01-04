@@ -7,8 +7,8 @@ import Data.Identity (Identity)
 import Data.MCache (MCache(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
-import ZipperM.Test.Utils (MCacheM(..))
-import ZipperM.Utils (runIdentity)
+import Test.Utils (MCacheM(..))
+import Utils (runIdentity)
 
 
 -- | tests are written on the newtype wrapper MCacheM so that some values are forced

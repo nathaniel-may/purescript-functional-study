@@ -11,7 +11,7 @@ import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable1, unfoldr1)
 import Test.QuickCheck (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (Gen)
-import ZipperM.Utils (init', tail')
+import Utils (init', tail')
 
 
 data ZipperM m a = ZipperM (List (m a)) a (List (m a))

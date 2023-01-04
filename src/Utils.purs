@@ -1,4 +1,4 @@
-module ZipperM.Utils where
+module Utils where
 
 import Prelude
 

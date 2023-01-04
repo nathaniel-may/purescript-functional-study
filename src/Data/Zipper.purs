@@ -11,7 +11,7 @@ import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr1)
 import Data.ZipperM (ZipperM, focus)
 import Data.ZipperM as ZipperM
-import ZipperM.Utils (runIdentity)
+import Utils (runIdentity)
 import Data.NonEmpty as NonEmpty
 
 

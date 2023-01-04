@@ -9,6 +9,7 @@ import Prelude
 import Data.Necklace (focus, insertLeft, insertRight, next, prev, size)
 import Data.Necklace as Necklace
 import Data.NonEmpty ((:|))
+import Test.Utils (PN(..), walkNecklace)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert as Assert
 
@@ -99,3 +100,12 @@ tests = suite "Necklace unit tests" do
         Assert.assert
             (show xs <> " != " <> show xs')
             (xs == xs')
+
+    test "walk twice around" do
+        let xs = (0 :| [1, 2])
+        let necklace = Necklace.fromNonEmpty xs
+        let xs' = walkNecklace [N, N, N, N, N] necklace
+        let expected = [0, 1, 2, 0, 1, 2]
+        Assert.assert
+            (show expected <> " != " <> show xs')
+            (expected == xs')
