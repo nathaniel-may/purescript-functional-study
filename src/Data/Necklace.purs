@@ -167,6 +167,27 @@ removeRight old@(Necklace focusEntry@{ k, v, n, p } m maxKey) =
         -- make the necklace
         pure $ Necklace focusEntry' m' maxKey
 
+removeLeft :: forall a. Necklace a -> Maybe (Necklace a)
+removeLeft old@(Necklace focusEntry@{ k, v, n, p } m maxKey) = 
+    if size old == 1
+    then Nothing
+    else do
+        -- get the value to be removed
+        {k:pk, v:_, p: pp, n: _} <- M.lookup p m
+        -- get the previous previous value and update it's n pointer
+        nnEntry' <- (_ { n=k }) <$> M.lookup pp m
+
+        -- update the p pointer for the element in focus in the necklace
+        let focusEntry' = (focusEntry { p=pp })
+
+        -- remove one and update two entries in the map
+        let m' = M.insert k focusEntry'
+                <<< M.insert pp nnEntry' 
+                <<< M.delete pk $ m
+
+        -- make the necklace
+        pure $ Necklace focusEntry' m' maxKey
+
 -- if Necklace is implemented correctly, the lookup will never return Nothing.
 -- TODO write a prop test to ensure this ^^
 next :: forall a. Necklace a -> Necklace a
