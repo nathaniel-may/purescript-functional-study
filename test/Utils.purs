@@ -28,7 +28,7 @@ instance arbitraryMCacheM :: (Applicative m, Arbitrary (m a)) => Arbitrary (MCac
         pure <<< MCacheM $ if b then pure cache else force cache
 
 walkNecklace :: forall a. WalkPath -> Necklace a -> Array a
-walkNecklace = walk (Just <<< Necklace.next) Necklace.focus (Just <<< Necklace.next)
+walkNecklace = walk (Just <<< Necklace.prev) Necklace.focus (Just <<< Necklace.next)
 
 walkZipperM :: forall m a. Monad m => WalkPath -> ZipperM m a -> m (Array a)
 walkZipperM = walkM ZipperM.prev ZipperM.focus ZipperM.next
