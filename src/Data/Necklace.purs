@@ -92,34 +92,54 @@ focus :: forall a. Necklace a -> a
 focus (Necklace entry _ _) = entry.v
 
 insertRight :: forall a. a -> Necklace a -> Necklace a
-insertRight y (Necklace { k, v, n, p } m sz) = 
-    let yKey = sz + 1
-        yEntry =
-            if sz == 1
-            then { k: yKey, v: y, p: k, n: k }
-            else { k: yKey, v: y, p: k, n: n }
-        entry =
-            if sz == 1
-            then { k: k, v: v, p: yKey, n: yKey }
-            else { k: k, v: v, p: p, n: yKey }
-        m' = M.insert yKey yEntry <<< M.insert k entry $ m
-    in
-        Necklace entry m' (sz + 1)
+insertRight newValue old@(Necklace focusEntry@{ k, v, n, p } m maxKey) = 
+    fromMaybe old $ do
+        -- make the entry for the new value
+        let newKey = maxKey + 1
+        let newEntry = { k: newKey, v: newValue, p: k, n: n }
+
+        -- update the n pointer for the element in focus in the necklace
+        let focusEntry' = 
+                -- if the necklace is a singleton, handle the loop around
+                if size old == 1
+                then (focusEntry { n=newKey, p=newKey })
+                else (focusEntry { n=newKey })
+
+        -- update the p pointer for the next element in the necklace
+        nEntry' <- (_ { p=newKey }) <$> M.lookup n m
+
+        -- update the map with all 3 entrires
+        let m' = M.insert k focusEntry'
+                <<< M.insert newKey newEntry
+                <<< M.insert n nEntry' $ m
+
+        -- make the necklace
+        pure $ Necklace focusEntry' m' newKey
 
 insertLeft :: forall a. a -> Necklace a -> Necklace a
-insertLeft y (Necklace { k, v, n, p } m sz) = 
-    let yKey = sz + 1
-        yEntry =
-            if sz == 1
-            then { k: yKey, v: y, p: k, n: k }
-            else { k: yKey, v: y, p: p, n: k }
-        entry =
-            if sz == 1
-            then { k: k, v: v, p: yKey, n: yKey }
-            else { k: k, v: v, p: yKey, n: n }
-        m' = M.insert yKey yEntry <<< M.insert k entry $ m
-    in
-        Necklace entry m' (sz + 1)
+insertLeft newValue old@(Necklace focusEntry@{ k, v, n, p } m maxKey) = 
+    fromMaybe old $ do
+        -- make the entry for the new value
+        let newKey = maxKey + 1
+        let newEntry = { k: newKey, v: newValue, p: p, n: k }
+
+        -- update the n pointer for the element in focus in the necklace
+        let focusEntry' =  
+                -- if the necklace is a singleton, handle the loop around           
+                if size old == 1
+                then (focusEntry { p=newKey, n=newKey })
+                else (focusEntry { p=newKey })
+
+        -- update the n pointer for the previous element in the necklace
+        pEntry' <- (_ { n=newKey }) <$> M.lookup p m
+
+        -- update the map with all 3 entrires
+        let m' = M.insert p pEntry'
+                <<< M.insert newKey newEntry
+                <<< M.insert k focusEntry' $ m
+
+        -- make the necklace
+        pure $ Necklace focusEntry' m' newKey
 
 -- TODO add removeLeft, removeRight, and change "size" to maxIndex (it won't be the size anymore when you can remove elements)
 
