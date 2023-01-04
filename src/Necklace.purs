@@ -3,14 +3,15 @@ module Data.Necklace where
 import Prelude
 
 import Control.Comonad (class Comonad, class Extend)
-import Data.Foldable (class Foldable, foldl, foldr)
+import Data.Foldable (class Foldable, foldl)
 import Data.HashMap (HashMap)
 import Data.HashMap as M
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmpty (NonEmpty, head, tail)
-import Data.Semigroup.Foldable (class Foldable1, foldr1)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable1 (class Unfoldable1, unfoldr1)
+import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck.Gen (Gen)
 
 
 type Entry a =
@@ -25,28 +26,29 @@ data Necklace a = Necklace (Entry a) (HashMap Int (Entry a)) Int
 
 -- identical Necklaces that are not in the same focus position are not equal
 instance eqNecklace :: Eq a => Eq (Necklace a) where
-    eq (Necklace entry m _) (Necklace entry' m') =
+    eq (Necklace entry m _) (Necklace entry' m' _) =
         entry == entry' && m == m'
 
--- instance foldableNecklace :: Foldable Necklace where
---     foldr :: forall a b. (a -> b -> b) -> b -> Necklace a -> b
---     foldr f z xs@(Necklace { k, v, n, p } _ _) = foldr' k f z xs
---         where
---         foldr' start f' z' xs'@(Necklace { k, v, n, p } _ _) =
---             if start == n
---             then z'
---             else f (focus xs') (foldr' start f z' (next xs'))
+instance foldableNecklace :: Foldable Necklace where
+    foldr :: forall a b. (a -> b -> b) -> b -> Necklace a -> b
+    foldr f z xs@(Necklace { k: k, v: _, n: _, p: _ } _ _) = foldr' k f z xs
+        where
+        foldr' start f' z' xs'@(Necklace { k: _, v: _, n: n', p: _ } _ _) =
+            if start == n'
+            then z'
+            else f (focus xs') (foldr' start f' z' (next xs'))
 
---     foldl :: forall a b. (b -> a -> b) -> b -> Necklace a -> b
---     foldl f z xs@(Necklace { k, v, n, p } _ _) = foldlBOOP k f z xs
---         where
---         foldlBOOP start f' z' xs'@(Necklace { k, v, n, p } _ _) =
---             if start == n
---             then z'
---             else foldlBOOP f' (f' z' (focus xs')) (next xs')
+    foldl :: forall a b. (b -> a -> b) -> b -> Necklace a -> b
+    foldl f z xs@(Necklace { k: k, v: _, n: _, p: _ } _ _) = foldl' k f z xs
+        where
+        foldl' start f' z' xs'@(Necklace { k: _, v: _, n: n', p: _ } _ _) =
+            if start == n'
+            then z'
+            else foldl' start f' (f' z' (focus xs')) (next xs')
 
---     foldMap :: forall a m. Monoid m => (a -> m) -> Necklace a -> m
---     foldMap = 0
+    -- TODO make this effecient
+    foldMap :: forall a m. Monoid m => (a -> m) -> Necklace a -> m
+    foldMap f xs = foldl append mempty (map f xs)
 
 -- TODO add instance for Foldable1
 
@@ -59,15 +61,22 @@ instance extractNecklace :: Extend Necklace where
     extend :: forall b a. (Necklace a -> b) -> Necklace a -> Necklace b
     extend f = map f <<< duplicate
         where
-        duplicate :: forall a. Necklace a -> Necklace (Necklace a)
-        duplicate xs = foldr f (singleton xs) (next xs)
-
-        f :: forall a. Necklace a -> Necklace (Necklace a) -> Necklace (Necklace a)
-        f y ys = next $ insertRight y ys
+        duplicate :: Necklace a -> Necklace (Necklace a)
+        duplicate xs@(Necklace {k: k, v: _, n: _, p: _} _ _) =
+            go k (next xs) (singleton xs)
+        
+        go :: Int -> Necklace a -> Necklace (Necklace a) -> Necklace (Necklace a)
+        go start xs@(Necklace {k: k, v: _, n: _, p: _} _ _) xxs = 
+            if k == start
+            then next xxs
+            else go start (next xs) (next $ insertRight xs xxs)
 
 instance comonadNecklace :: Comonad Necklace where
     extract :: forall a. Necklace a -> a
     extract = focus
+
+instance arbitraryNecklace :: Arbitrary a => Arbitrary (Necklace a) where
+    arbitrary = fromNonEmpty <$> (arbitrary :: Gen (NonEmpty Array a))
 
 fromNonEmpty :: forall f a. Foldable f => NonEmpty f a -> Necklace a
 fromNonEmpty xs = next $ foldl (\ys y -> next $ insertRight y ys) (singleton $ head xs) (tail xs)
@@ -111,6 +120,8 @@ insertLeft y (Necklace { k, v, n, p } m sz) =
         m' = M.insert yKey yEntry <<< M.insert k entry $ m
     in
         Necklace entry m' (sz + 1)
+
+-- TODO add removeLeft, removeRight, and change "size" to maxIndex (it won't be the size anymore when you can remove elements)
 
 -- if Necklace is implemented correctly, the lookup will never return Nothing.
 -- TODO write a prop test to ensure this ^^

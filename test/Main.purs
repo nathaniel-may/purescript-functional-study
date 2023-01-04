@@ -10,10 +10,12 @@ import Test.ZipperM.Laws as ZipperMLaws
 import Test.ZipperM.Unit as ZipperMUnit
 import Test.BufferedZipper.Unit as BufferedZipperUnit
 import Test.Necklace.Unit as NecklaceUnit
+import Test.Necklace.Laws as NecklaceLaws
 
 main :: Effect Unit
 main = do
     runTest NecklaceUnit.tests
+    runTest NecklaceLaws.tests
     runTest ZipperMUnit.tests
     runTest ZipperUnit.tests
     runTest ZipperMLaws.tests
