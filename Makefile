@@ -6,9 +6,9 @@ ci:
 # build everything but the tests
 .PHONY: build
 build:
-	spago build --purs-args "--stash" --path src
+	spago build --path src
 
 # build and run tests
 .PHONY: test
 test:
-	spago -x test.dhall test --purs-args "--stash"
+	spago -x test.dhall test
