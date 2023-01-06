@@ -154,3 +154,16 @@ debugPrint (BufferedZipper l (Zipper bl _ br) r z) =
 debugState :: forall a. Show a => State Int a -> String
 debugState m = case runState m 0 of
     Tuple a s -> "{" <> show s <> "|" <> show a <> "}"
+
+-- import Prelude
+-- import Data.Array as Array 
+-- import Data.BufferedZipper 
+-- import Data.Functor (voidLeft) 
+-- import Control.Monad.State (State, evalState, execState, runState, modify, get)
+-- import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
+-- import Data.Tuple (Tuple(..))
+-- import Data.Zipper (Zipper(..))
+-- import Data.List.Lazy as List 
+-- import Data.MCache as MCache
+-- mz = mkBufferedZipper 2 (voidLeft (modify (_ + 1)) <$> ['a', 'b', 'c', 'd'] :: Array (State Int Char))
+-- runState (runMaybeT $ debugPrint <$> (nextT =<< MaybeT mz)) 0 
