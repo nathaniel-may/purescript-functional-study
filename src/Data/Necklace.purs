@@ -23,6 +23,7 @@ type Entry a =
     , p :: Int
     }
 
+-- TODO maybe implement NecklaceM?
 -- TODO move constructor to internal module and re-export
 data Necklace a = Necklace (Entry a) (HashMap Int (Entry a)) Int
 
