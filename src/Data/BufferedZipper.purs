@@ -11,7 +11,7 @@ import Data.MCache (MCache, force, run, uncached)
 import Data.MCache as MCache
 import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
-import Data.Traversable (sequence)
+import Data.Traversable (sequence, traverse)
 import Data.Tuple (Tuple(..))
 import Data.Zipper (Zipper(..))
 import Data.Zipper as Zipper
@@ -50,13 +50,17 @@ instance arbitraryZipperM :: (Arbitrary (m a), Arbitrary a, Applicative m) => Ar
 -- | buffersize must be at least 1.
 -- | For no buffer, use `Zipper` and for an infinite buffer use `ZipperM`
 -- TODO use NonEmpty Array (m a)?
-mkBufferedZipper :: forall m a. Applicative m => Int -> Array (m a) -> m (Maybe (BufferedZipper m a))
+mkBufferedZipper :: forall m a. Monad m => Int -> Array (m a) -> m (Maybe (BufferedZipper m a))
 mkBufferedZipper bsize xs
     | bsize < 1 = pure Nothing
     | otherwise = sequence do
         { head, tail } <- (Array.uncons xs)
         let { before, after } = Array.splitAt (bsize - 1) tail
-        Just $ map (\h -> BufferedZipper [] (Zipper.fromNonEmpty (pure h :| (List.fromFoldable $ map uncached before))) after h) head
+        pure do
+            h <- head
+            precached <- traverse (force <<< uncached) before
+            let buffer = Zipper.fromNonEmpty (pure h :| List.fromFoldable precached)
+            pure $ BufferedZipper [] buffer after h
     
 -- TODO drop constraint to Applicative
 next :: forall m a. Monad m => BufferedZipper m a -> m (Maybe (BufferedZipper m a))
