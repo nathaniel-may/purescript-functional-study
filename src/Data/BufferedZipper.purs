@@ -66,7 +66,7 @@ next (BufferedZipper l buff r _) = case Zipper.next buff of
         Nothing -> pure Nothing
         Just { head, tail } -> runMaybeT do
             Tuple b buff' <- MaybeT <<< pure $ dropLeft $ Zipper.insertRight (uncached head) buff
-            buff'' <- MaybeT <<< pure $ Zipper.prev buff' -- TODO: bug: what if drop left dropped the focus? then it'd be progressing TOO far.
+            buff'' <- MaybeT <<< pure $ Zipper.next buff' -- TODO: bug: what if drop left dropped the focus? then it'd be progressing TOO far.
             let l' = Array.cons (MCache.run $ MCache.evict b) l
             let mbz' = map (\z -> BufferedZipper l' buff'' tail z) (Zipper.focus buff'')
             MaybeT <<< map Just $ run =<< (force mbz')
