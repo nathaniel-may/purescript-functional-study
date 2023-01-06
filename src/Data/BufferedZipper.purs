@@ -53,10 +53,10 @@ instance arbitraryZipperM :: (Arbitrary (m a), Arbitrary a, Applicative m) => Ar
 mkBufferedZipper :: forall m a. Applicative m => Int -> Array (m a) -> m (Maybe (BufferedZipper m a))
 mkBufferedZipper bsize xs
     | bsize < 1 = pure Nothing
-    | otherwise = sequence $ (\{ head, tail } ->
+    | otherwise = sequence do
+        { head, tail } <- (Array.uncons xs)
         let { before, after } = Array.splitAt (bsize - 1) tail
-        in map (\h -> BufferedZipper [] (Zipper.fromNonEmpty (pure h :| (List.fromFoldable $ map uncached before))) after h) head
-    ) <$> (Array.uncons xs)
+        Just $ map (\h -> BufferedZipper [] (Zipper.fromNonEmpty (pure h :| (List.fromFoldable $ map uncached before))) after h) head
     
 -- TODO drop constraint to Applicative
 next :: forall m a. Monad m => BufferedZipper m a -> m (Maybe (BufferedZipper m a))
