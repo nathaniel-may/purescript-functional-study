@@ -65,10 +65,9 @@ next (BufferedZipper l buff r _) = case Zipper.next buff of
     Nothing -> case Array.uncons r of
         Nothing -> pure Nothing
         Just { head, tail } -> runMaybeT do
-            Tuple b buff' <- MaybeT <<< pure $ dropLeft $ Zipper.insertRight (uncached head) buff
-            buff'' <- MaybeT <<< pure $ Zipper.next buff' -- TODO: bug: what if drop left dropped the focus? then it'd be progressing TOO far.
+            Tuple b buff' <- MaybeT <<< pure $ dropLeftAndNext $ Zipper.insertRight (uncached head) buff
             let l' = Array.cons (MCache.run $ MCache.evict b) l
-            let mbz' = map (\z -> BufferedZipper l' buff'' tail z) (Zipper.focus buff'')
+            let mbz' = map (\z -> BufferedZipper l' buff' tail z) (Zipper.focus buff')
             MaybeT <<< map Just $ run =<< (force mbz')
 
 -- TODO drop constraint to Applicative
@@ -78,10 +77,9 @@ prev (BufferedZipper l buff r _) = case Zipper.prev buff of
     Nothing -> case Array.uncons l of
         Nothing -> pure Nothing
         Just { head, tail } -> runMaybeT do
-            Tuple b buff' <- MaybeT <<< pure $ dropRight $ Zipper.insertLeft (uncached head) buff
-            buff'' <- MaybeT <<< pure $ Zipper.prev buff' -- TODO: bug: what if drop left dropped the focus? then it'd be progressing TOO far.
+            Tuple b buff' <- MaybeT <<< pure $ dropRightAndPrev $ Zipper.insertLeft (uncached head) buff
             let r' = Array.cons (MCache.run $ MCache.evict b) r
-            let mbz' = map (\z -> BufferedZipper tail buff'' r' z) (Zipper.focus buff'')
+            let mbz' = map (\z -> BufferedZipper tail buff' r' z) (Zipper.focus buff')
             MaybeT <<< map Just $ run =<< (force mbz')
 
 nextT :: forall m a. Monad m => BufferedZipper m a -> MaybeT m (BufferedZipper m a)
@@ -108,19 +106,23 @@ snocRight :: forall m a. Zipper (m a) -> m a -> Zipper (m a)
 snocRight (Zipper l z r) mx = Zipper l z (List.snoc r mx)
 
 -- TODO move to an internal module
-dropLeft :: forall m a. Applicative m => Zipper (m a) -> Maybe (Tuple (m a) (Zipper (m a)))
-dropLeft (Zipper l z r) = case List.last l of
-    Just x -> Just $ Tuple x (Zipper (init' l) z r)
+dropLeftAndNext :: forall m a. Applicative m => Zipper (m a) -> Maybe (Tuple (m a) (Zipper (m a)))
+dropLeftAndNext (Zipper l z r) = case List.last l of
+    -- since the focus isn't being dropped, move the zipper as well
+    Just x -> map (\y -> Tuple x y ) (Zipper.next $ Zipper (init' l) z r)
     Nothing -> case List.head r of
+        -- we have to drop the focus so it's already being forced to move
         Just x -> Just $ Tuple z (Zipper nil x (tail' r))
         Nothing -> Nothing
 
 -- TODO move to an internal module
 -- TODO implement it better than O(2n) (put unsnoc in Utils?)
-dropRight :: forall m a. Applicative m => Zipper (m a) -> Maybe (Tuple (m a) (Zipper (m a)))
-dropRight (Zipper l z r) = case List.last r of
-    Just x -> Just $ Tuple x (Zipper l z (init' r))
+dropRightAndPrev :: forall m a. Applicative m => Zipper (m a) -> Maybe (Tuple (m a) (Zipper (m a)))
+dropRightAndPrev (Zipper l z r) = case List.last r of
+    -- since the focus isn't being dropped, move the zipper as well
+    Just x -> map (\y -> Tuple x y ) (Zipper.prev $ Zipper l z (init' r))
     Nothing -> case List.head l of
+        -- we have to drop the focus so it's already being forced to move
         Just x -> Just $ Tuple z (Zipper (tail' l) x nil)
         Nothing -> Nothing
 
