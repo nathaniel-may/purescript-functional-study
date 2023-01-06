@@ -4,12 +4,11 @@ import Prelude
 
 import Control.Comonad (class Comonad, class Extend)
 import Data.Foldable (class Foldable, foldl, foldr)
-import Data.Semigroup.Foldable (foldMap1)
 import Data.HashMap (HashMap)
 import Data.HashMap as M
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmpty (NonEmpty, head, tail)
-import Data.Semigroup.Foldable (class Foldable1)
+import Data.Semigroup.Foldable (class Foldable1, foldMap1)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable1 (class Unfoldable1, unfoldr1)
 import Test.QuickCheck (class Arbitrary, arbitrary)
@@ -111,7 +110,7 @@ focus :: forall a. Necklace a -> a
 focus (Necklace entry _ _) = entry.v
 
 insertRight :: forall a. a -> Necklace a -> Necklace a
-insertRight newValue old@(Necklace focusEntry@{ k, v, n, p } m maxKey) = 
+insertRight newValue old@(Necklace focusEntry@{ k: k, v: _, n: n, p: _ } m maxKey) = 
     fromMaybe old $ do
         -- make the entry for the new value
         -- TODO this limits to only MaxInt number of inserts. Should fill in removed index values as well for
@@ -138,7 +137,7 @@ insertRight newValue old@(Necklace focusEntry@{ k, v, n, p } m maxKey) =
         pure $ Necklace focusEntry' m' newKey
 
 insertLeft :: forall a. a -> Necklace a -> Necklace a
-insertLeft newValue old@(Necklace focusEntry@{ k, v, n, p } m maxKey) = 
+insertLeft newValue old@(Necklace focusEntry@{ k: k, v: _, n: _, p: p } m maxKey) = 
     fromMaybe old $ do
         -- make the entry for the new value
         let newKey = maxKey + 1
@@ -163,7 +162,7 @@ insertLeft newValue old@(Necklace focusEntry@{ k, v, n, p } m maxKey) =
         pure $ Necklace focusEntry' m' newKey
 
 removeRight :: forall a. Necklace a -> Maybe (Necklace a)
-removeRight old@(Necklace focusEntry@{ k, v, n, p } m maxKey) = 
+removeRight old@(Necklace focusEntry@{ k: k, v: _, n: n, p: _ } m maxKey) = 
     if size old == 1
     then Nothing
     else do
@@ -184,7 +183,7 @@ removeRight old@(Necklace focusEntry@{ k, v, n, p } m maxKey) =
         pure $ Necklace focusEntry' m' maxKey
 
 removeLeft :: forall a. Necklace a -> Maybe (Necklace a)
-removeLeft old@(Necklace focusEntry@{ k, v, n, p } m maxKey) = 
+removeLeft old@(Necklace focusEntry@{ k: k, v: _, n: _, p: p } m maxKey) = 
     if size old == 1
     then Nothing
     else do
