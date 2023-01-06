@@ -19,8 +19,8 @@ import Utils (runIdentity)
 
 -- TODO add test for expected effects with the state monad
 tests :: TestSuite
-tests = suite "ZipperM unit tests" do
-    
+tests = suite "BufferedZipper unit tests" do
+
     -- TODO this test is right, but BufferedZipper is broken.
     testSkip "next and prev foward and back" do
         let input = (pure <$> [0, 1, 2, 3, 4] :: Array (Identity Int))

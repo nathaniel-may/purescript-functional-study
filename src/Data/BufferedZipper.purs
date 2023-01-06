@@ -40,6 +40,7 @@ instance arbitraryZipperM :: (Arbitrary (m a), Arbitrary a) => Arbitrary (Buffer
 
 -- | buffersize must be at least 1.
 -- | For no buffer, use `Zipper` and for an infinite buffer use `ZipperM`
+-- TODO use NonEmpty Array (m a)?
 mkBufferedZipper :: forall m a. Applicative m => Int -> Array (m a) -> m (Maybe (BufferedZipper m a))
 mkBufferedZipper bsize xs
     | bsize < 1 = pure Nothing
@@ -56,7 +57,7 @@ next (BufferedZipper l z r) = (case _ of
         Just { head, tail } -> do
             Tuple b bs <- dropLeft $ ZipperM.insertRight (uncached head) z
             Just $ BufferedZipper (Array.cons (MCache.run b) l) bs tail
-    ) <$> (run $ ZipperM.prev z)
+    ) <$> (run $ ZipperM.next z)
 
 prev :: forall m a. Applicative m => BufferedZipper m a -> m (Maybe (BufferedZipper m a))
 prev (BufferedZipper l z r) = (case _ of

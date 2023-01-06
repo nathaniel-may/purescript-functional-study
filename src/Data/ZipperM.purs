@@ -5,13 +5,13 @@ import Prelude
 import Control.Monad.Maybe.Trans (MaybeT(..))
 import Data.List.Lazy (List, nil, (:))
 import Data.List.Lazy as List
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), maybe)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable1, unfoldr1)
 import Test.QuickCheck (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (Gen)
-import Utils (init', tail')
+import Utils (tail')
 
 
 data ZipperM m a = ZipperM (List (m a)) a (List (m a))
@@ -42,18 +42,16 @@ fromList1 = ZipperM nil
 
 fromList :: forall m a. Applicative m => List (m a) -> m (Maybe (ZipperM m a))
 fromList xs = case List.uncons xs of
-    Nothing ->
-        pure Nothing
-    Just { head, tail } -> 
-        sequence <<< pure $ map (\h -> ZipperM nil h tail) head
+    Nothing -> pure Nothing
+    Just { head, tail } -> (\x -> Just $ fromList1 x tail) <$> head
 
 next :: forall m a. Applicative m => ZipperM m a -> m (Maybe (ZipperM m a))
 next (ZipperM left z right) =
-    map (\z' -> ZipperM (left `List.snoc` pure z) z' (tail' right)) <$> (sequence $ List.head right)
+    map (\z' -> ZipperM (List.cons (pure z) left) z' (tail' right)) <$> (sequence $ List.head right)
 
 prev :: forall m a. Applicative m => ZipperM m a -> m (Maybe (ZipperM m a))
 prev (ZipperM left z right) =
-    map (\z' -> ZipperM (init' left) z' (pure z `List.cons` right)) <$> (sequence $ List.last left)
+    map (\z' -> ZipperM (tail' left) z' (List.cons (pure z) right)) <$> (sequence $ List.head left)
 
 nextT :: forall m a. Applicative m => ZipperM m a -> MaybeT m (ZipperM m a)
 nextT = MaybeT <<< next
