@@ -13,6 +13,15 @@ import Data.Unfoldable (class Unfoldable, unfoldr1)
 
 data Zipper a = Zipper (List a) a (List a)
 
+instance eqZipper :: Eq a => Eq (Zipper a) where
+    eq (Zipper l z r) (Zipper l' z' r') =
+        l == l' && z == z' && r == r'
+
+instance functorZipper :: Functor Zipper where
+    map f (Zipper l z r) = Zipper (map f l) (f z) (map f r)
+
+-- TODO add the other instances
+
 fromNonEmpty :: forall a. NonEmpty List a -> Zipper a
 fromNonEmpty xs = Zipper nil (NonEmpty.head xs) (NonEmpty.tail xs)
 

@@ -7,8 +7,7 @@ import Data.Identity (Identity)
 import Data.MCache (MCache(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
-import Test.Utils (MCacheM(..))
-import Utils (runIdentity)
+import Test.Utils (MCacheM(..), runIdentity)
 
 
 -- | tests are written on the newtype wrapper MCacheM so that some values are forced

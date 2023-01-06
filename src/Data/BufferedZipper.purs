@@ -10,36 +10,42 @@ import Data.List.Lazy as List
 import Data.MCache (MCache, force, run, uncached)
 import Data.MCache as MCache
 import Data.Maybe (Maybe(..))
+import Data.NonEmpty ((:|))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
-import Data.ZipperM (ZipperM(..))
-import Data.ZipperM as ZipperM
+import Data.Zipper (Zipper(..))
+import Data.Zipper as Zipper
 import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck.Gen (Gen)
 import Utils (init', tail')
 
 
 data BufferedZipper m a = BufferedZipper 
     (Array (m a))
-    (ZipperM (MCache m) a)
+    (Zipper (MCache m a))
     (Array (m a))
+    a
 
 instance eqZipperM :: (Applicative m, Eq (m a), Eq a) => Eq (BufferedZipper m a) where
     eq z z' = toArray z == toArray z'
 
 instance functorBufferedZipper :: Functor m => Functor (BufferedZipper m) where
-    map f (BufferedZipper l z r) = BufferedZipper
+    map f (BufferedZipper l buff r z) = BufferedZipper
         (map (map f) l)
-        (map f z)
+        (map (map f) buff)
         (map (map f) r)
+        (f z)
 
 -- TODO double check this?
 -- BufferedZipper is not a comonad because extend cannot be implemented for arbitrary effects
 
-instance arbitraryZipperM :: (Arbitrary (m a), Arbitrary a) => Arbitrary (BufferedZipper m a) where
+instance arbitraryZipperM :: (Arbitrary (m a), Arbitrary a, Applicative m) => Arbitrary (BufferedZipper m a) where
     arbitrary = do
-        buffer <- arbitrary
-        xs <- arbitrary
-        pure $ BufferedZipper [] buffer xs
+        x <- arbitrary
+        xs <- arbitrary :: Gen (Array a)
+        ys <- arbitrary
+        let buffer = Zipper.fromNonEmpty $ pure <$> (x :| List.fromFoldable xs)
+        pure $ BufferedZipper [] buffer ys x
 
 -- | buffersize must be at least 1.
 -- | For no buffer, use `Zipper` and for an infinite buffer use `ZipperM`
@@ -49,34 +55,34 @@ mkBufferedZipper bsize xs
     | bsize < 1 = pure Nothing
     | otherwise = sequence $ (\{ head, tail } ->
         let { before, after } = Array.splitAt (bsize - 1) tail
-        in map (\h -> BufferedZipper [] (ZipperM.fromList1 h (List.fromFoldable $ map uncached before)) after) head
+        in map (\h -> BufferedZipper [] (Zipper.fromNonEmpty (pure h :| (List.fromFoldable $ map uncached before))) after h) head
     ) <$> (Array.uncons xs)
     
 -- TODO drop constraint to Applicative
 next :: forall m a. Monad m => BufferedZipper m a -> m (Maybe (BufferedZipper m a))
-next (BufferedZipper l z r) = do
-    mz' <- run =<< (force $ ZipperM.next z)
-    case mz' of
-        Just z' -> pure <<< Just $ BufferedZipper l z' r
-        Nothing -> case Array.uncons r of
-            Nothing -> pure Nothing
-            Just { head, tail } -> runMaybeT do
-                Tuple b buff <- MaybeT $ run =<< (force <<< dropLeft $ ZipperM.insertRight (uncached head) z)
-                buff' <- MaybeT $ run =<< (force $ ZipperM.next buff) -- TODO: bug: what if drop left dropped the focus? then it'd be progressing TOO far.
-                pure $ BufferedZipper (Array.cons (MCache.run $ MCache.evict b) l) buff' tail
+next (BufferedZipper l buff r _) = case Zipper.next buff of
+    Just buff' -> map Just $ run =<< (force $ map (\z -> BufferedZipper l buff' r z) (Zipper.focus buff'))
+    Nothing -> case Array.uncons r of
+        Nothing -> pure Nothing
+        Just { head, tail } -> runMaybeT do
+            Tuple b buff' <- MaybeT <<< pure $ dropLeft $ Zipper.insertRight (uncached head) buff
+            buff'' <- MaybeT <<< pure $ Zipper.prev buff' -- TODO: bug: what if drop left dropped the focus? then it'd be progressing TOO far.
+            let l' = Array.cons (MCache.run $ MCache.evict b) l
+            let mbz' = map (\z -> BufferedZipper l' buff'' tail z) (Zipper.focus buff'')
+            MaybeT <<< map Just $ run =<< (force mbz')
 
 -- TODO drop constraint to Applicative
 prev :: forall m a. Monad m => BufferedZipper m a -> m (Maybe (BufferedZipper m a))
-prev (BufferedZipper l z r) = do
-    mz' <- run =<< (force $ ZipperM.prev z)
-    case mz' of
-        Just z' -> pure <<< Just $ BufferedZipper l z' r -- TODO: bug: ZipperM forgets the focus context. replace with Zipper.
-        Nothing -> case Array.uncons l of
-            Nothing -> pure Nothing
-            Just { head, tail } -> runMaybeT do
-                Tuple b buff <- MaybeT $ run =<< (force <<< dropRight $ ZipperM.insertLeft (uncached head) z)
-                buff' <- MaybeT $ run =<< (force $ ZipperM.prev buff)
-                pure $ BufferedZipper tail buff' (Array.cons (MCache.run $ MCache.evict b) r)
+prev (BufferedZipper l buff r _) = case Zipper.prev buff of
+    Just buff' -> map Just $ run =<< (force $ map (\z -> BufferedZipper l buff' r z) (Zipper.focus buff'))
+    Nothing -> case Array.uncons l of
+        Nothing -> pure Nothing
+        Just { head, tail } -> runMaybeT do
+            Tuple b buff' <- MaybeT <<< pure $ dropRight $ Zipper.insertLeft (uncached head) buff
+            buff'' <- MaybeT <<< pure $ Zipper.prev buff' -- TODO: bug: what if drop left dropped the focus? then it'd be progressing TOO far.
+            let r' = Array.cons (MCache.run $ MCache.evict b) r
+            let mbz' = map (\z -> BufferedZipper tail buff'' r' z) (Zipper.focus buff'')
+            MaybeT <<< map Just $ run =<< (force mbz')
 
 nextT :: forall m a. Monad m => BufferedZipper m a -> MaybeT m (BufferedZipper m a)
 nextT = MaybeT <<< next
@@ -85,54 +91,54 @@ prevT :: forall m a. Monad m => BufferedZipper m a -> MaybeT m (BufferedZipper m
 prevT = MaybeT <<< prev
 
 focus :: forall m a. BufferedZipper m a -> a
-focus (BufferedZipper _ z _) = ZipperM.focus z
+focus (BufferedZipper _ _ _ z) = z
 
 toArray :: forall m a. Applicative m => BufferedZipper m a -> Array (m a)
-toArray (BufferedZipper l z r) =
+toArray (BufferedZipper l buff r _) =
     (Array.reverse l)
-    <> map run (ZipperM.toArray z)
+    <> map run (Zipper.toUnfoldable buff)
     <> r
 
 -- TODO delete this in favor of ZipperM.insertLeft
-snocLeft :: forall m a. m a -> ZipperM m a -> ZipperM m a
-snocLeft mx (ZipperM l z r) = ZipperM (List.snoc l mx) z r
+snocLeft :: forall m a. m a -> Zipper (m a) -> Zipper (m a)
+snocLeft mx (Zipper l z r) = Zipper (List.snoc l mx) z r
 
 -- TODO delete this in favor of ZipperM.insertRight
-snocRight :: forall m a. ZipperM m a -> m a -> ZipperM m a
-snocRight (ZipperM l z r) mx = ZipperM l z (List.snoc r mx)
+snocRight :: forall m a. Zipper (m a) -> m a -> Zipper (m a)
+snocRight (Zipper l z r) mx = Zipper l z (List.snoc r mx)
 
 -- TODO move to an internal module
-dropLeft :: forall m a. Applicative m => ZipperM m a -> m (Maybe (Tuple (m a) (ZipperM m a)))
-dropLeft (ZipperM l z r) = case List.last l of
-    Just x -> pure <<< Just $ Tuple x (ZipperM (init' l) z r)
+dropLeft :: forall m a. Applicative m => Zipper (m a) -> Maybe (Tuple (m a) (Zipper (m a)))
+dropLeft (Zipper l z r) = case List.last l of
+    Just x -> Just $ Tuple x (Zipper (init' l) z r)
     Nothing -> case List.head r of
-        Just x -> map (\y -> Just $ Tuple (pure z) (ZipperM nil y (tail' r))) x
-        Nothing -> pure Nothing
+        Just x -> Just $ Tuple z (Zipper nil x (tail' r))
+        Nothing -> Nothing
 
 -- TODO move to an internal module
--- TODO implement it better than O(2n)
-dropRight :: forall m a. Applicative m => ZipperM m a -> m (Maybe (Tuple (m a) (ZipperM m a)))
-dropRight (ZipperM l z r) = case List.last r of
-    Just x -> pure <<< Just $ Tuple x (ZipperM l z (init' r))
+-- TODO implement it better than O(2n) (put unsnoc in Utils?)
+dropRight :: forall m a. Applicative m => Zipper (m a) -> Maybe (Tuple (m a) (Zipper (m a)))
+dropRight (Zipper l z r) = case List.last r of
+    Just x -> Just $ Tuple x (Zipper l z (init' r))
     Nothing -> case List.head l of
-        Just x -> map (\y -> Just $ Tuple (pure z) (ZipperM (tail' l) y nil)) x
-        Nothing -> pure Nothing
+        Just x -> Just $ Tuple z (Zipper (tail' l) x nil)
+        Nothing -> Nothing
 
 -- TODO remove this or move to an internal function
 instance showBufferedZipper :: (Show (m a), Show a, Applicative m) => Show (BufferedZipper m a) where
-    show (BufferedZipper l (ZipperM bl z br) r) =
+    show (BufferedZipper l (Zipper bl _ br) r z) =
         show l
         <> " |b| "
         <> show (Array.reverse <<< List.toUnfoldable $ run <$> bl)
         <> " -> "
         <> show z
         <> " <- "
-        <> show (run <$> List.toUnfoldable br :: Array (m a))
+        <> show ((List.toUnfoldable $ run <$> br) :: Array (m a))
         <> " |b| "
         <> show r
 
 debugPrint :: forall a. Show a => BufferedZipper (State Int) a -> String
-debugPrint (BufferedZipper l (ZipperM bl z br) r) =
+debugPrint (BufferedZipper l (Zipper bl _ br) r z) =
     show (debugState <$> l)
     <> " |b| "
     <> show (Array.reverse <<< List.toUnfoldable $ debugState <<< MCache.run <$> bl)

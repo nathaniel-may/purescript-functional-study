@@ -5,10 +5,13 @@ import Prelude
 import Data.Array (cons, uncons)
 import Data.BufferedZipper (BufferedZipper)
 import Data.BufferedZipper as BZ
+import Data.Identity (Identity(..))
 import Data.MCache (MCache(..), force)
 import Data.Maybe (Maybe(..))
 import Data.Necklace (Necklace)
 import Data.Necklace as Necklace
+import Data.Zipper (Zipper)
+import Data.Zipper as Zipper
 import Data.ZipperM (ZipperM)
 import Data.ZipperM as ZipperM
 import Test.QuickCheck (class Arbitrary, arbitrary)
@@ -27,8 +30,14 @@ instance arbitraryMCacheM :: (Applicative m, Arbitrary (m a)) => Arbitrary (MCac
         let cache = MCache m Nothing
         pure <<< MCacheM $ if b then pure cache else force cache
 
+runIdentity :: forall a. Identity a -> a
+runIdentity (Identity x) = x
+
 walkNecklace :: forall a. WalkPath -> Necklace a -> Array a
 walkNecklace = walk (Just <<< Necklace.prev) Necklace.focus (Just <<< Necklace.next)
+
+walkZipper :: forall a. WalkPath -> Zipper a -> Array a
+walkZipper = walk Zipper.prev Zipper.focus Zipper.next
 
 walkZipperM :: forall m a. Monad m => WalkPath -> ZipperM m a -> m (Array a)
 walkZipperM = walkM ZipperM.prev ZipperM.focus ZipperM.next

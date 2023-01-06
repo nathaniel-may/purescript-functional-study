@@ -3,8 +3,6 @@
   [ "arrays"
   , "control"
   , "foldable-traversable"
-  , "identity"
-  , "lazy"
   , "lists"
   , "maybe"
   , "nonempty"

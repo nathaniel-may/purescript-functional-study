@@ -16,8 +16,7 @@ import Data.Maybe (Maybe(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (assert)
 import Test.Unit.Assert as Assert
-import Test.Utils (PN(..), walkBufferedZipper)
-import Utils (runIdentity)
+import Test.Utils (PN(..), walkBufferedZipper, runIdentity)
 
 
 -- TODO add test for expected effects with the state monad

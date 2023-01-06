@@ -13,8 +13,7 @@ import Data.ZipperM (ZipperM(..))
 import Data.ZipperM as ZipperM
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert as Assert
-import Test.Utils (PN(..), walkZipperM)
-import Utils (runIdentity)
+import Test.Utils (PN(..), walkZipperM, runIdentity)
 
 
 tests :: TestSuite
