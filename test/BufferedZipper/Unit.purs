@@ -6,8 +6,11 @@ module Test.BufferedZipper.Unit
 
 import Prelude
 
-import Data.BufferedZipper (mkBufferedZipper)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
+import Control.Monad.State (State, evalState, get, modify)
+import Data.BufferedZipper (focus, mkBufferedZipper, nextT, prevT)
 import Data.BufferedZipper as BufferedZipper
+import Data.Functor (voidLeft)
 import Data.Identity (Identity)
 import Data.Maybe (Maybe(..))
 import Test.Unit (TestSuite, suite, test)
@@ -20,6 +23,19 @@ import Utils (runIdentity)
 -- TODO add test for expected effects with the state monad
 tests :: TestSuite
 tests = suite "BufferedZipper unit tests" do
+
+    test "next and prev" do
+        let input = (pure <$> [0, 1] :: Array (Identity Int))
+        let massert = runIdentity <<< runMaybeT $ do
+                z0 <- MaybeT $ mkBufferedZipper 2 input
+                z1 <- nextT z0
+                z2 <- prevT z1
+                _ <- pure $ assert "constructor failed" (focus z0 == 0)
+                _ <- pure $ assert "next failed" (focus z1 == 1)
+                pure $ assert "prev failed" (focus z2 == 0)
+        case massert of
+            Nothing -> assert "other failure" false
+            Just assertion -> assertion
 
     test "next and prev foward and back buffer of 1" do
         let input = (pure <$> [0, 1, 2, 3, 4] :: Array (Identity Int))
@@ -52,3 +68,27 @@ tests = suite "BufferedZipper unit tests" do
             Just zipper ->
                 let expected = pure <$> [0, 1, 2, 3, 4]
                 in Assert.equal expected (BufferedZipper.toArray zipper)
+    
+    test "effect counts half buffer" do
+        let count = modify (_ + 1)
+        let input = (voidLeft count <$> ['a', 'b', 'c', 'd'] :: Array (State Int Char))
+        let counter = do
+                mz <- mkBufferedZipper 2 input
+                _ <- case mz of
+                    Nothing -> pure []
+                    Just zipper -> walkBufferedZipper [N, N, N, P, P, P] zipper
+                effectCount <- get
+                pure $ Assert.equal 6 effectCount
+        evalState counter 0
+
+    test "effect counts all buffer" do
+        let count = modify (_ + 1)
+        let input = (voidLeft count <$> ['a', 'b', 'c', 'd'] :: Array (State Int Char))
+        let counter = do
+                mz <- mkBufferedZipper 4 input
+                _ <- case mz of
+                    Nothing -> pure []
+                    Just zipper -> walkBufferedZipper [N, N, N, P, P, P] zipper
+                effectCount <- get
+                pure $ Assert.equal 4 effectCount
+        evalState counter 0
