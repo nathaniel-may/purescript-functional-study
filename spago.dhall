@@ -3,6 +3,7 @@
   [ "arrays"
   , "control"
   , "foldable-traversable"
+  , "lazy"
   , "lists"
   , "maybe"
   , "nonempty"
@@ -14,5 +15,5 @@
   , "unordered-collections"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/**/*.purs"]
+, sources = [ "src/**/*.purs" ]
 }

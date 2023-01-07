@@ -2,13 +2,17 @@ module Data.Zipper where
 
 import Prelude
 
-import Data.List.Lazy (List, nil)
+import Control.Extend (class Extend)
+import Data.Lazy (defer, force)
+import Data.List.Lazy (List, nil, zipWith)
 import Data.List.Lazy as List
-import Data.Maybe (Maybe(..))
-import Data.NonEmpty (NonEmpty)
+import Data.List.Lazy.Types (NonEmptyList(..))
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NonEmpty
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr1)
+import Utils (nonEmptyListPrepend)
 
 
 data Zipper a = Zipper (List a) a (List a)
@@ -20,7 +24,39 @@ instance eqZipper :: Eq a => Eq (Zipper a) where
 instance functorZipper :: Functor Zipper where
     map f (Zipper l z r) = Zipper (map f l) (f z) (map f r)
 
--- TODO add the other instances
+instance applyZipper :: Apply Zipper where
+    apply (Zipper fl fz fr) (Zipper l z r) = Zipper
+        (zipWith ($) fl l) 
+        (fz z)
+        (zipWith ($) fr r) 
+
+instance applicativeZipper :: Applicative Zipper where
+    pure x = Zipper nil x nil
+
+instance bindZipper :: Bind Zipper where
+    bind :: forall a b. Zipper a -> (a -> Zipper b) -> Zipper b
+    bind xs f = 
+        let ys = map f xs
+            (Zipper ll zz rr) = map (\(Zipper l z r) -> NonEmptyList $ defer (\_ -> nonEmptyListPrepend (List.reverse l) (z :| r))) ys
+            (NonEmptyList values) = join <<< NonEmptyList $ defer (\_ -> nonEmptyListPrepend (List.reverse ll) (zz :| rr))
+        in fromNonEmpty (force values)
+
+instance monadZipper :: Monad Zipper
+
+instance extendZipper :: Extend Zipper where
+    extend :: forall b a. (Zipper a -> b) -> Zipper a -> Zipper b
+    extend f = map f <<< duplicate
+        where
+        duplicate :: Zipper a -> Zipper (Zipper a)
+        duplicate x = go (prev x) (next x) (pure x) 
+
+        go :: Maybe (Zipper a) -> Maybe (Zipper a) -> Zipper (Zipper a) -> Zipper (Zipper a)
+        go Nothing Nothing zs = zs
+        go xs ys zs0 =
+            let zs1 = go (prev =<< xs) (next =<< ys) zs0
+                zs2 = fromMaybe zs1 $ map (\xs' -> insertLeft xs' zs1) xs
+                zs3 = fromMaybe zs2 $ map (\ys' -> insertRight ys' zs2) ys
+            in zs3
 
 fromNonEmpty :: forall a. NonEmpty List a -> Zipper a
 fromNonEmpty xs = Zipper nil (NonEmpty.head xs) (NonEmpty.tail xs)
