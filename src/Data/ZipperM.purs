@@ -30,6 +30,7 @@ instance functorZipperM :: Functor m => Functor (ZipperM m) where
     map f (ZipperM l x r) = ZipperM (map (map f) l) (f x) (map (map f) r)
 
 -- ZipperM is not a comonad because extend cannot be implemented for arbitrary effects
+-- implementing extend ends up having the type forall b a. (ZipperM a -> b) -> ZipperM a -> m (ZipperM b)
 
 instance arbitraryZipperM :: (Arbitrary (m a), Arbitrary a) => Arbitrary (ZipperM m a) where
     arbitrary = do
@@ -44,6 +45,9 @@ fromList :: forall m a. Applicative m => List (m a) -> m (Maybe (ZipperM m a))
 fromList xs = case List.uncons xs of
     Nothing -> pure Nothing
     Just { head, tail } -> (\x -> Just $ fromList1 x tail) <$> head
+
+singleton :: forall m a. a -> ZipperM m a
+singleton x = ZipperM nil x nil
 
 next :: forall m a. Applicative m => ZipperM m a -> m (Maybe (ZipperM m a))
 next (ZipperM left z right) =
