@@ -2,13 +2,12 @@ module Data.Zipper where
 
 import Prelude
 
+import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
-import Data.Lazy (defer, force)
-import Data.List.Lazy (List, nil, zipWith)
+import Data.List.Lazy (List, nil)
 import Data.List.Lazy as List
-import Data.List.Lazy.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.NonEmpty (NonEmpty, (:|))
+import Data.NonEmpty (NonEmpty)
 import Data.NonEmpty as NonEmpty
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr1)
@@ -40,6 +39,9 @@ instance extendZipper :: Extend Zipper where
                 zs2 = fromMaybe zs1 $ map (\xs' -> insertLeft xs' zs1) xs
                 zs3 = fromMaybe zs2 $ map (\ys' -> insertRight ys' zs2) ys
             in zs3
+
+instance comonadZipper :: Comonad Zipper where
+    extract = focus
 
 instance arbitraryZipper :: Arbitrary a => Arbitrary (Zipper a) where
     arbitrary = do
