@@ -4,6 +4,7 @@ import Prelude
 
 import Effect (Effect)
 import Test.BufferedZipper.Unit as BufferedZipperUnit
+import Test.FlexStateT.Laws as FlexStateTLaws
 import Test.MCache.Laws as MCacheLaws
 import Test.Necklace.Laws as NecklaceLaws
 import Test.Necklace.Unit as NecklaceUnit
@@ -23,3 +24,4 @@ main = do
     runTest ZipperMLaws.tests
     runTest MCacheLaws.tests
     runTest BufferedZipperUnit.tests
+    runTest FlexStateTLaws.tests
