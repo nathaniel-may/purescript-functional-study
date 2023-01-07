@@ -12,7 +12,7 @@ import Data.NonEmpty (NonEmpty, (:|))
 import Data.NonEmpty as NonEmpty
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable, unfoldr1)
-import Utils (nonEmptyListPrepend)
+import Test.QuickCheck (class Arbitrary, arbitrary)
 
 
 data Zipper a = Zipper (List a) a (List a)
@@ -24,31 +24,14 @@ instance eqZipper :: Eq a => Eq (Zipper a) where
 instance functorZipper :: Functor Zipper where
     map f (Zipper l z r) = Zipper (map f l) (f z) (map f r)
 
-instance applyZipper :: Apply Zipper where
-    apply (Zipper fl fz fr) (Zipper l z r) = Zipper
-        (zipWith ($) fl l) 
-        (fz z)
-        (zipWith ($) fr r) 
-
-instance applicativeZipper :: Applicative Zipper where
-    pure x = Zipper nil x nil
-
-instance bindZipper :: Bind Zipper where
-    bind :: forall a b. Zipper a -> (a -> Zipper b) -> Zipper b
-    bind xs f = 
-        let ys = map f xs
-            (Zipper ll zz rr) = map (\(Zipper l z r) -> NonEmptyList $ defer (\_ -> nonEmptyListPrepend (List.reverse l) (z :| r))) ys
-            (NonEmptyList values) = join <<< NonEmptyList $ defer (\_ -> nonEmptyListPrepend (List.reverse ll) (zz :| rr))
-        in fromNonEmpty (force values)
-
-instance monadZipper :: Monad Zipper
+-- Note: Zipper is not an Applicative because it breaks the identity law
 
 instance extendZipper :: Extend Zipper where
     extend :: forall b a. (Zipper a -> b) -> Zipper a -> Zipper b
     extend f = map f <<< duplicate
         where
         duplicate :: Zipper a -> Zipper (Zipper a)
-        duplicate x = go (prev x) (next x) (pure x) 
+        duplicate x = go (prev x) (next x) (singleton x) 
 
         go :: Maybe (Zipper a) -> Maybe (Zipper a) -> Zipper (Zipper a) -> Zipper (Zipper a)
         go Nothing Nothing zs = zs
@@ -58,11 +41,21 @@ instance extendZipper :: Extend Zipper where
                 zs3 = fromMaybe zs2 $ map (\ys' -> insertRight ys' zs2) ys
             in zs3
 
+instance arbitraryZipper :: Arbitrary a => Arbitrary (Zipper a) where
+    arbitrary = do
+        x <- arbitrary
+        xs' <- arbitrary
+        let xs = List.fromFoldable (xs' :: Array a)
+        pure $ Zipper nil x xs
+
 fromNonEmpty :: forall a. NonEmpty List a -> Zipper a
 fromNonEmpty xs = Zipper nil (NonEmpty.head xs) (NonEmpty.tail xs)
 
 fromList :: forall a. List a -> Maybe (Zipper a)
 fromList xs = Zipper nil <$> List.head xs <*> List.tail xs
+
+singleton :: forall a. a -> Zipper a
+singleton x = Zipper nil x nil
 
 next :: forall a. Zipper a -> Maybe (Zipper a)
 next (Zipper l z r) = Zipper (List.cons z l) <$> List.head r <*> List.tail r
