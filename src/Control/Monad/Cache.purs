@@ -21,6 +21,9 @@ instance semigroupCacheT :: (Hashable k, Monad m, Semigroup a) => Semigroup (Cac
         -- union keeps the value from the left in the event of duplicates
         pure $ Tuple (x <> x') (M.union s'' s'))
 
+instance monoidCacheT :: (Hashable k, Monad m, Monoid a) => Monoid (CacheT m k v a) where
+    mempty = pure mempty
+
 instance functorCacheT :: (Applicative m, Hashable k) => Functor (CacheT m k v) where
     map f (CacheT x) = CacheT (map f x)
 
