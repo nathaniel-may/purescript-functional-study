@@ -30,3 +30,6 @@ fetch :: forall m k v. MonadCache m k v => (k -> m v) -> k -> m v
 fetch f k = retrieve k >>= case _ of
     Nothing -> f k
     Just v -> insert k v $> v
+
+size :: forall m k v. MonadCache m k v => m Int
+size = cache \(m :: HashMap k v) -> Tuple (M.size m) m
