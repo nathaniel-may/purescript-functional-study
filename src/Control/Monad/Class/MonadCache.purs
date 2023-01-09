@@ -15,8 +15,13 @@ class (Hashable k, Monad m) <= MonadCache m k v where
 insert :: forall m k v. MonadCache m k v => k -> v -> m Unit
 insert k v = cache \m -> Tuple unit (M.insert k v m)
 
+-- | retrieve a value from the cache by its key 
 retrieve :: forall m k v. MonadCache m k v => k -> m (Maybe v)
 retrieve k = cache \m -> Tuple (M.lookup k m) m
+
+-- | retrieve a value that depends on the entire cache
+retrieves :: forall m k v a. MonadCache m k v => (HashMap k v -> a) -> m a
+retrieves f = cache \m -> Tuple (f m) m
 
 evict :: forall m k v. MonadCache m k v => k -> m Unit
 evict k = cache \m -> Tuple unit (M.delete k m :: HashMap k v)
@@ -32,4 +37,4 @@ fetch f k = retrieve k >>= case _ of
     Just v -> insert k v $> v
 
 size :: forall m k v. MonadCache m k v => m Int
-size = cache \(m :: HashMap k v) -> Tuple (M.size m) m
+size = retrieves (M.size :: HashMap k v -> Int)
