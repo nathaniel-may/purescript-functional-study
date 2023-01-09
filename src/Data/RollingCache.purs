@@ -2,12 +2,15 @@ module Data.RollingCache where
 
 import Prelude
 
+import Control.Alternative ((<|>))
 import Data.Array as Array
 import Data.HashMap (HashMap)
 import Data.HashMap as M
 import Data.Hashable (class Hashable)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Ord as Ord
 import Data.Tuple (Tuple(..))
+
 
 -- TODO add unit tests for this module
 -- TODO put constructor in internal module and re-export type
@@ -44,6 +47,10 @@ lookup k (RollingCache max ks m) =
 evict :: forall k v. Hashable k => k -> RollingCache k v -> RollingCache k v
 evict k (RollingCache max ks m) = RollingCache max (Array.delete k ks) (M.delete k m)
 
+-- | immediately removes all elements from the cache
+evictAll :: forall k v. Hashable k => RollingCache k v -> RollingCache k v
+evictAll (RollingCache max _ _) = RollingCache max [] M.empty
+
 -- | remove the least-recently touched element from the cache
 pop :: forall k v. Hashable k => RollingCache k v -> RollingCache k v
 pop (RollingCache max ks m) = fromMaybe (RollingCache max [] m) do
@@ -78,8 +85,23 @@ unpin k input@(RollingCache max ks m) =
     then RollingCache (map (_ + 1) max) (Array.cons k ks) m
     else input
 
+size :: forall k v. Hashable k => RollingCache k v -> Int
+size (RollingCache _ _ m) = M.size m
+
 -- TODO move to internal module
 -- | moves the element to the front of the list if it exists, or prepends it otherwise.
 -- | Used to update the order of cache eviction.
 touch :: forall a. Eq a => a -> Array a -> Array a
 touch x = Array.cons x <<< Array.delete x
+
+-- TODO test this
+-- | Merges two caches together. The resulting cache will take the smaller of the two sizes
+-- | and the order of key touches will
+merge :: forall k v. Hashable k => RollingCache k v -> RollingCache k v -> RollingCache k v
+merge (RollingCache max ks m) (RollingCache max' ks' m') =
+    let newMax = case Tuple max max' of
+            Tuple (Just x) (Just y) -> Just (Ord.max x y)
+            Tuple x y -> x <|> y
+        newKs = ks' <> (Array.difference ks ks')
+        newM = M.union m' m
+    in (RollingCache newMax newKs newM)
