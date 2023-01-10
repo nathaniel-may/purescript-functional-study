@@ -47,7 +47,7 @@ lookup k (RollingCache max ks m) =
 evict :: forall k v. Hashable k => k -> RollingCache k v -> RollingCache k v
 evict k (RollingCache max ks m) = RollingCache max (Array.delete k ks) (M.delete k m)
 
--- | immediately removes all elements from the cache
+-- | immediately removes all elements from the cache including pinned elements
 evictAll :: forall k v. Hashable k => RollingCache k v -> RollingCache k v
 evictAll (RollingCache max _ _) = RollingCache max [] M.empty
 
@@ -66,7 +66,7 @@ shrink input@(RollingCache (Just max) ks _)
     | Array.length ks <= max = input
     | otherwise = shrink (pop input)
 
--- | pins an element to the cache so it will not be evicted.
+-- | similar to insert, however it this also pins an element to the cache so it will not be evicted by the rolling effect.
 -- | Fails if the cache is at its max size with all pinned values already.
 pin :: forall k v. Hashable k => k -> v -> RollingCache k v -> Maybe (RollingCache k v)
 pin k v (RollingCache Nothing ks m) =
