@@ -1,7 +1,10 @@
 { name = "purescript-zipperm"
 , dependencies =
-  [ "arrays"
+  [ "aff"
+  , "arrays"
+  , "console"
   , "control"
+  , "effect"
   , "foldable-traversable"
   , "lists"
   , "maybe"

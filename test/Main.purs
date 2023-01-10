@@ -13,6 +13,7 @@ import Test.Zipper.Laws as ZipperLaws
 import Test.Zipper.Unit as ZipperUnit
 import Test.ZipperM.Laws as ZipperMLaws
 import Test.ZipperM.Unit as ZipperMUnit
+-- import Test.Examples.RollingCache as RollingCacheExamples
 
 main :: Effect Unit
 main = do
@@ -25,3 +26,4 @@ main = do
     runTest MCacheLaws.tests
     runTest BufferedZipperUnit.tests
     runTest FlexStateTLaws.tests
+    -- runTest RollingCacheExamples.tests
