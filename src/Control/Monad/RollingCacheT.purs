@@ -25,11 +25,8 @@ instance applicativeRollingCacheT :: (Monad m, Hashable k) => Applicative (Rolli
 
 instance bindRollingCacheT :: (Monad m, Hashable k) => Bind (RollingCacheT k v m) where
     bind :: forall a b. RollingCacheT k v m a -> (a -> RollingCacheT k v m b) -> RollingCacheT k v m b
-    bind (RollingCacheT (StateT fs)) f = RollingCacheT (StateT \s -> do
-        Tuple x c <- fs s
-        let (RollingCacheT (StateT fs')) = (f x)
-        Tuple y c' <- fs' s
-        pure $ Tuple y (Cache.merge c' c))
+    bind (RollingCacheT (StateT x)) f = RollingCacheT <<< StateT $ \s ->
+        x s >>= \(Tuple v s') -> case f v of RollingCacheT (StateT st) -> st s'
 
 instance monadRollingCacheT :: (Monad m, Hashable k) => Monad (RollingCacheT k v m)
 
