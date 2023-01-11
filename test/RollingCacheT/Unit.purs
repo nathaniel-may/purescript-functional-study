@@ -42,7 +42,7 @@ tests = suite "RollingCacheT unit tests" do
                 Cache.insert 1 100
                 v <- Cache.retrieve 1
                 liftAff $ Assert.equal (Just 100) v
-        runTestM theTest (mkRollingCache $ Just 2) 0
+        runTestM theTest (mkRollingCache $ Nothing) 0
 
     test "fetch" $ do
         let theTest = do
@@ -55,13 +55,15 @@ tests = suite "RollingCacheT unit tests" do
                 _ <- Cache.fetch effectfulFetch 1
                 effects1 <- State.get
                 liftAff $ Assert.equal 1 effects1
-        runTestM theTest (mkRollingCache $ Just 2) 0
+        runTestM theTest (mkRollingCache $ Nothing) 0
 
     test "effect counts" $ do
-        let theTest = do
+        let theTest expectedEffects = do
                 let input = [1, 2, 3, 4, 3, 4, 3, 1]
                 let effectfulFetch x = (State.modify_ (_ + 1) $> (x * 100) :: TestM Int)
                 _ <- traverse (Cache.fetch effectfulFetch) input :: TestM (Array Int)
                 effects <- (State.get :: TestM Int)
-                liftAff $ Assert.equal 5 effects
-        runTestM theTest (mkRollingCache $ Just 2) 0
+                liftAff $ Assert.equal expectedEffects effects
+        runTestM (theTest 4) (mkRollingCache $ Nothing) 0
+        runTestM (theTest 8) (mkRollingCache $ Just 1) 0
+        runTestM (theTest 5) (mkRollingCache $ Just 2) 0

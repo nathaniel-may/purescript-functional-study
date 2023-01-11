@@ -93,15 +93,3 @@ size (RollingCache _ _ m) = M.size m
 -- | Used to update the order of cache eviction.
 touch :: forall a. Eq a => a -> Array a -> Array a
 touch x = Array.cons x <<< Array.delete x
-
--- TODO test this
--- | Merges two caches together. The resulting cache will take the smaller of the two sizes
--- | and the order of key touches will
-merge :: forall k v. Hashable k => RollingCache k v -> RollingCache k v -> RollingCache k v
-merge (RollingCache max ks m) (RollingCache max' ks' m') =
-    let newMax = case Tuple max max' of
-            Tuple (Just x) (Just y) -> Just (Ord.max x y)
-            Tuple x y -> x <|> y
-        newKs = ks' <> (Array.difference ks ks')
-        newM = M.union m' m
-    in (RollingCache newMax newKs newM)
