@@ -1,4 +1,4 @@
-![ci](https://github.com/nathaniel-may/purescript-zipperm/actions/workflows/main.yml/badge.svg?branch=main)
+![ci](https://github.com/nathaniel-may/purescript-functional-study/actions/workflows/main.yml/badge.svg?branch=main)
 
 # purescript-functional-study
 
