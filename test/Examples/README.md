@@ -1,3 +1,8 @@
 # Examples
 
-These sources files are to compile and test the examples presented in the top-level readme.
+These sources files are just to compile the examples presented in the top-level readme.
+
+You can manually run them to verify they match the expected output with the following command: 
+```
+spago -x test.dhall run -m Test.Examples.RollingCache
+```

@@ -15,6 +15,7 @@ class (Hashable k, Monad m) <= MonadRollingCache k v m where
 insert :: forall m k v. MonadRollingCache k v m => k -> v -> m Unit
 insert k v = cache \c -> Tuple unit (Cache.insert k v c)
 
+-- TODO should I rename this `lookup`?
 -- | retrieve a value from the cache by its key 
 retrieve :: forall m k v. MonadRollingCache k v m => k -> m (Maybe v)
 retrieve k = cache (Cache.lookup k)

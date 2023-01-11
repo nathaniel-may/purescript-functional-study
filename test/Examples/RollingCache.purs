@@ -73,7 +73,8 @@ debugApp = do
     f :: String -> m Int
     f x = do
         -- check if it's in the cache (not normally necessary)
-        inCache <- Cache.retrieves (\(c :: RollingCache String String) -> case c of (RollingCache _ _ m) -> M.member x m)
+        inCache <- Cache.retrieves (\(c :: RollingCache String String) ->
+            case c of (RollingCache _ _ m) -> M.member x m)
         -- get the value from the cache if it's there, otherwise use the function to get it over the simulated network
         resource <- Cache.fetch (liftAff <<< simulatedNetworkCall) x
         -- print the resource with a marker if it is from the cache (🗃️) or a network call (🌐)
