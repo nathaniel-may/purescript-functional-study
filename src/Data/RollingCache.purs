@@ -2,13 +2,11 @@ module Data.RollingCache where
 
 import Prelude
 
-import Control.Alternative ((<|>))
 import Data.Array as Array
 import Data.HashMap (HashMap)
 import Data.HashMap as M
 import Data.Hashable (class Hashable)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.Ord as Ord
 import Data.Tuple (Tuple(..))
 
 
