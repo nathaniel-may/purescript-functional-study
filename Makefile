@@ -12,3 +12,8 @@ build:
 .PHONY: test
 test:
 	spago -x test.dhall test
+
+# build and run tests
+.PHONY: example
+example:
+	spago -x test.dhall run -m Test.Examples.RollingCache

@@ -37,12 +37,12 @@ simulatedUserInput :: Array String
 simulatedUserInput = ["a", "b", "c", "d", "b", "c", "a"]
 
 simulatedNetworkCall :: String -> Aff String
-simulatedNetworkCall s = case s of
-    "a" -> pure "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-    "b" -> pure "Curabitur scelerisque cursus placerat."
-    "c" -> pure "Praesent ullamcorper mi at mi mattis, in vehicula mi volutpat."
-    "d" -> pure "Aenean et eros ut justo imperdiet placerat quis at ipsum."
-    _ -> pure ""
+simulatedNetworkCall s = pure case s of
+    "a" -> "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    "b" -> "Curabitur scelerisque cursus placerat."
+    "c" -> "Praesent ullamcorper mi at mi mattis, in vehicula mi volutpat."
+    "d" -> "Aenean et eros ut justo imperdiet placerat quis at ipsum."
+    _ -> ""
 
 
 -- without a cache, the simulated user input would make 7 network calls to fetch 4 resources.
@@ -78,6 +78,6 @@ debugApp = do
         -- get the value from the cache if it's there, otherwise use the function to get it over the simulated network
         resource <- Cache.fetch (liftAff <<< simulatedNetworkCall) x
         -- print the resource with a marker if it is from the cache (🗃️) or a network call (🌐)
-        liftEffect <<< log $ if inCache then "🗃️ " else "🌐 " <> resource
+        liftEffect <<< log $ (if inCache then "🗃️  " else "🌐 ") <> resource
         -- count the effects
         if inCache then pure 0 else pure 1
