@@ -2,13 +2,13 @@ module Data.BufferedZipper where
 
 import Prelude
 
+import Control.MCache (MCache, force, run, uncached)
+import Control.MCache as MCache
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.State (State, runState)
 import Data.Array as Array
 import Data.List.Lazy (nil)
 import Data.List.Lazy as List
-import Data.MCache (MCache, force, run, uncached)
-import Data.MCache as MCache
 import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
 import Data.Traversable (sequence, traverse)

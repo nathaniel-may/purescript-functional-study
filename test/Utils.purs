@@ -2,11 +2,11 @@ module Test.Utils where
 
 import Prelude
 
+import Control.MCache (MCache(..), force)
 import Data.Array (cons, uncons)
 import Data.BufferedZipper (BufferedZipper)
 import Data.BufferedZipper as BZ
 import Data.Identity (Identity(..))
-import Data.MCache (MCache(..), force)
 import Data.Maybe (Maybe(..))
 import Data.Necklace (Necklace)
 import Data.Necklace as Necklace

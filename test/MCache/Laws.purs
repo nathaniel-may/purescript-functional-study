@@ -3,8 +3,8 @@ module Test.MCache.Laws (tests) where
 import Prelude
 
 import Control.Comonad (extend)
+import Control.MCache (MCache(..))
 import Data.Identity (Identity)
-import Data.MCache (MCache(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
 import Test.Utils (MCacheM(..), runIdentity)

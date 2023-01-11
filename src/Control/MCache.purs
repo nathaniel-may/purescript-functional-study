@@ -1,4 +1,4 @@
-module Data.MCache where
+module Control.MCache where
 
 import Prelude
 
