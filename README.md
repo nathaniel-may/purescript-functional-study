@@ -25,7 +25,11 @@ You can see from the definition that `CacheM` stores both the monadic action and
 Thought about it, but didn't because it would have been messy for very little gain.
 
 ## MonadCache, CacheT
-After all this thought about specialized cache eviction for effectful zippers I wanted to implement the caching outside the datatype so you could easily swap your zipper for a list or a hashmap and not have to rewrite all your effect handling. This lead to what I think is a fairly elegant monad transformer to store and retrieve elements from the cache. It's mostly a specialized instance of StateT, but it has the convenience function `MonadCache.fetch :: forall m k v. MonadCache m k v => (k -> m v) -> k -> m v`. So you can easily turn an effectul expression like `traverse fetchOverNetwork inputs` into `traverse (MonadCache.fetch fetchOverNetwork) inputs` and your cache will be utilized to only perform the effect for each input exactly once even if some of the inputs are repeated. But this still doesn't have the convenience of a fixed-size cache that will evict elements automatically like `BufferedZipper` had.
+After all this thought about specialized cache eviction for effectful zippers I wanted to implement the caching outside the datatype so you could easily swap your zipper for a list or a hashmap and not have to rewrite all your effect handling. This lead to what I think is a fairly elegant monad transformer to store and retrieve elements from the cache. It's mostly a specialized instance of StateT, but it has the following convenience function:
+```
+MonadCache.fetch :: forall m k v. MonadCache m k v => (k -> m v) -> k -> m v
+```
+With this, you can easily turn an effectul expression like `traverse fetchOverNetwork inputs` into `traverse (MonadCache.fetch fetchOverNetwork) inputs` and your cache will be utilized to only perform the effect for each input exactly once even if some of the inputs are repeated. But this still doesn't have the convenience of a fixed-size cache that will evict elements automatically like `BufferedZipper` had.
 
 ## RollingCache
 `RollingCache` is basically a fixed-size `HashMap` that deletes the elements that were least-recently retrieved. It was implemented with the intent for it to be used as the state in `StateT`.
