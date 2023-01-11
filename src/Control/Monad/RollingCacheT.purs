@@ -6,7 +6,6 @@ import Control.Monad.RollingCache.Class (class MonadRollingCache)
 import Control.Monad.State (class MonadTrans, StateT(..), evalStateT, execStateT, lift, runStateT)
 import Data.Hashable (class Hashable)
 import Data.RollingCache (RollingCache)
-import Data.RollingCache as Cache
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
